@@ -1,0 +1,14 @@
+PATH
+  remote: ../..
+  specs:
+    rudoop (1.0.0.pre0-java)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+
+PLATFORMS
+  java
+
+DEPENDENCIES
+  rudoop!

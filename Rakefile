@@ -27,8 +27,6 @@ namespace :build do
   task :jars => :compile do
     ant.jar :destfile => 'lib/rudoop.jar', :basedir => build_dir do
       fileset :dir => build_dir, :includes => '**/*.class'
-      fileset :dir => ruby_dir, :includes => '**/*', :excludes => '*.jar'
-      manifest { attribute :name => 'Main-Class', :value => 'rudoop.RudoopJobRunner' }
     end
   end
 
