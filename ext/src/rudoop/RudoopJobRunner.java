@@ -27,6 +27,7 @@ public class RudoopJobRunner extends Configured implements Tool {
 
         public void configure(JobConf jobConf) {
             runtime = createConfiguredRuntime();
+            runtime.runScriptlet(PathType.ABSOLUTE, resourcePath(jobConf.get("rudoop.job_config_script")));
             instance = runtime.callMethod(runtime.get("Rudoop"), getCreationMethodName(), jobConf);
             runtime.callMethod(instance, "configure", jobConf);
         }
@@ -87,8 +88,6 @@ public class RudoopJobRunner extends Configured implements Tool {
     }
 
     public int run(String[] args) throws Exception {
-        JobConf conf = new JobConf(getConf(), RudoopJobRunner.class);
-
         LinkedList<String> arguments = new LinkedList<String>(Arrays.asList(args));
 
         String jobConfigScript = arguments.pop();
@@ -102,9 +101,11 @@ public class RudoopJobRunner extends Configured implements Tool {
         runtime.put("$rudoop_arguments", arguments);
         runtime.runScriptlet(PathType.ABSOLUTE, resourcePath(jobConfigScript));
         
-        List<JobConf> jobs = (List<JobConf>) runtime.runScriptlet("$rudoop_runner.jobs");
+        // TODO: got concurrent modification exceptions here, so making a copy, not sure how it can happen
+        List<JobConf> jobs = new LinkedList<JobConf>((List<JobConf>) runtime.runScriptlet("$rudoop_runner.jobs"));
 
         for (JobConf job : jobs) {
+            job.set("rudoop.job_config_script", jobConfigScript);
             JobClient.runJob(job);
         }
 
