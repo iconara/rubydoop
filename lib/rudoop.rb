@@ -40,20 +40,21 @@ module Rudoop
       @conf = conf
     end
 
-    def self.class_setter(dsl_name, java_name=nil)
-      java_name ||= dsl_name
+    def self.class_setter(dsl_name)
       define_method(dsl_name) do |cls|
-        @conf.send("set_#{java_name}", cls.java_class)
+        @conf.send("set_#{dsl_name}_class", cls.java_class)
       end
     end
 
-    def input(paths)
+    def input(paths, options={})
       paths = paths.join(',') if paths.is_a?(Enumerable)
-      Hadoop::Mapred::FileInputFormat.set_input_paths(@conf, paths)
+      format = options[:format] || Hadoop::Mapred::FileInputFormat
+      format.set_input_paths(@conf, paths)
     end
 
-    def output(dir)
-      Hadoop::Mapred::FileOutputFormat.set_output_path(@conf, Hadoop::Fs::Path.new(dir))
+    def output(dir, options={})
+      format = options[:format] || Hadoop::Mapred::FileOutputFormat
+      format.set_output_path(@conf, Hadoop::Fs::Path.new(dir))
     end
 
     def mapper(cls)
@@ -68,12 +69,10 @@ module Rudoop
       @conf.set("rudoop.combiner", cls.name)
     end
 
-    class_setter :input_format
-    class_setter :output_format
-    class_setter :map_output_key, :map_output_key_class
-    class_setter :map_output_value, :map_output_value_class
-    class_setter :output_key, :output_key_class
-    class_setter :output_value, :output_value_class
+    class_setter :map_output_key
+    class_setter :map_output_value
+    class_setter :output_key
+    class_setter :output_value
   end
 
   module ConfigurationDsl
