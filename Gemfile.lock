@@ -1,0 +1,18 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    coderay (1.0.7)
+    method_source (0.8)
+    pry (0.9.10-java)
+      coderay (~> 1.0.5)
+      method_source (~> 0.8)
+      slop (~> 3.3.1)
+      spoon (~> 0.0)
+    slop (3.3.3)
+    spoon (0.0.1)
+
+PLATFORMS
+  java
+
+DEPENDENCIES
+  pry

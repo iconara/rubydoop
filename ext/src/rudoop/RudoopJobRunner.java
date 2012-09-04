@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Arrays;
+import java.net.URL;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.conf.*;
 import org.apache.hadoop.io.*;
@@ -62,15 +63,27 @@ public class RudoopJobRunner extends Configured implements Tool {
         }
     }
 
-    public static ScriptingContainer createConfiguredRuntime() {
+    protected static ScriptingContainer createConfiguredRuntime() {
         ScriptingContainer runtime = new ScriptingContainer(LocalContextScope.CONCURRENT);
         runtime.setCompatVersion(CompatVersion.RUBY1_9);
-        runtime.runScriptlet(PathType.ABSOLUTE, embeddedScriptPath("rudoop.rb"));
+        runtime.setHomeDirectory(jrubyHome());
+        runtime.runScriptlet(PathType.ABSOLUTE, resourcePath("rudoop.rb"));
         return runtime;
     }
 
-    private static String embeddedScriptPath(String relativeScriptPath) {
-        return RudoopJobRunner.class.getClassLoader().getResource(relativeScriptPath).getFile();
+    private static String jrubyHome() {
+        // NOTE: this way of handling jruby.home here requires jruby-complete to be unpacked in the job dir
+        String baseDir = new File(resourcePath("rudoop.rb")).getParentFile().getAbsolutePath();
+        return String.format("%s/META-INF/jruby.home", baseDir);
+    }
+
+    private static String resourcePath(String resourcePath) {
+        URL url = RudoopJobRunner.class.getClassLoader().getResource(resourcePath);
+        if (url == null) {
+            return null;
+        } else {
+            return url.getFile();
+        }
     }
 
     public int run(String[] args) throws Exception {
@@ -87,7 +100,7 @@ public class RudoopJobRunner extends Configured implements Tool {
         Object runnerInstance = runtime.callMethod(runnerClass, "new", getConf(), getClass(), Map.class, Reduce.class, Combine.class);
         runtime.put("$rudoop_runner", runnerInstance);
         runtime.put("$rudoop_arguments", arguments);
-        runtime.runScriptlet(PathType.ABSOLUTE, embeddedScriptPath(jobConfigScript));
+        runtime.runScriptlet(PathType.ABSOLUTE, resourcePath(jobConfigScript));
         
         List<JobConf> jobs = (List<JobConf>) runtime.runScriptlet("$rudoop_runner.jobs");
 
