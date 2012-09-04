@@ -78,9 +78,9 @@ module Rudoop
   module ConfigurationDsl
     def configure(&block)
       if $rudoop_runner
-        arguments = ($rudoop_arguments || []).to_a
+        arguments = $rudoop_arguments.to_a
         configure_ctx = ConfigureContext.new($rudoop_runner)
-        configure_ctx.instance_exec(arguments, &block)
+        configure_ctx.instance_exec(*arguments, &block)
       end
     end
   end
