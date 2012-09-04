@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require 'rudoop/configure'
+require 'json'
 require 'word_count/mapper'
 require 'word_count/reducer'
 

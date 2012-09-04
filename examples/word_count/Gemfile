@@ -1,3 +1,4 @@
 source :rubygems
 
 gem 'rudoop', :path => '../..'
+gem 'json'
