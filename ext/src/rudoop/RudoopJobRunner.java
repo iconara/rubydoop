@@ -14,22 +14,29 @@ import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.util.*;
 
-import org.jruby.embed.ScriptingContainer;
-import org.jruby.embed.LocalContextScope;
-import org.jruby.embed.PathType;
+import org.jruby.Ruby;
+import org.jruby.RubyInstanceConfig;
+import org.jruby.RubyRuntimeAdapter;
 import org.jruby.CompatVersion;
+import org.jruby.runtime.builtin.IRubyObject;
+import org.jruby.javasupport.JavaEmbedUtils;
+import org.jruby.javasupport.JavaUtil;
+
 
 
 public class RudoopJobRunner extends Configured implements Tool {
     public static abstract class RudoopMapReduceBase extends MapReduceBase {
-        protected ScriptingContainer runtime;
-        protected Object instance;
+        protected Ruby runtime;
+        protected IRubyObject instance;
 
         public void configure(JobConf jobConf) {
             runtime = createConfiguredRuntime();
-            runtime.runScriptlet(PathType.ABSOLUTE, resourcePath(jobConf.get("rudoop.job_config_script")));
-            instance = runtime.callMethod(runtime.get("Rudoop"), getCreationMethodName(), jobConf);
-            runtime.callMethod(instance, "configure", jobConf);
+            runtime.evalScriptlet(String.format("require '%s'", jobConf.get("rudoop.job_config_script")));
+            IRubyObject rudoopModule = runtime.evalScriptlet("Rudoop");
+            instance = rudoopModule.callMethod(runtime.getCurrentContext(), getCreationMethodName(), JavaUtil.convertJavaToRuby(runtime, jobConf));
+            if (instance.respondsTo("configure")) {
+                instance.callMethod(runtime.getCurrentContext(), "configure", JavaUtil.convertJavaToRuby(runtime, jobConf));
+            }
         }
 
         protected abstract String getCreationMethodName();
@@ -42,7 +49,7 @@ public class RudoopJobRunner extends Configured implements Tool {
         }
 
         public void map(Object key, Object value, OutputCollector<Object, Object> output, Reporter reporter) throws IOException {
-            runtime.callMethod(instance, "map", key, value, output, reporter);
+            instance.callMethod(runtime.getCurrentContext(), "map", JavaUtil.convertJavaArrayToRuby(runtime, new Object[] {key, value, output, reporter}));
         }
     }
 
@@ -53,7 +60,7 @@ public class RudoopJobRunner extends Configured implements Tool {
         }
 
         public void reduce(Object key, Iterator<Object> values, OutputCollector<Object, Object> output, Reporter reporter) throws IOException {
-            runtime.callMethod(instance, "reduce", key, values, output, reporter);
+            instance.callMethod(runtime.getCurrentContext(), "reduce", JavaUtil.convertJavaArrayToRuby(runtime, new Object[] {key, values, output, reporter}));
         }
     }
 
@@ -64,45 +71,29 @@ public class RudoopJobRunner extends Configured implements Tool {
         }
     }
 
-    protected static ScriptingContainer createConfiguredRuntime() {
-        ScriptingContainer runtime = new ScriptingContainer(LocalContextScope.CONCURRENT);
-        runtime.setCompatVersion(CompatVersion.RUBY1_9);
-        runtime.setHomeDirectory(jrubyHome());
-        runtime.runScriptlet(PathType.ABSOLUTE, resourcePath("rudoop.rb"));
+    protected static Ruby createConfiguredRuntime() {
+        RubyInstanceConfig config = new RubyInstanceConfig();
+        config.setCompatVersion(CompatVersion.RUBY1_9);
+        Ruby runtime = Ruby.newInstance(config);
+        // NOTE: this is a hack to work around JRUBY-6879, the load path contains both 1.9 and 1.8
+        runtime.evalScriptlet("$LOAD_PATH.reject! { |path| path.include?('site_ruby/1.8')}");
+        runtime.evalScriptlet("require 'rudoop'");
         return runtime;
     }
 
-    private static String jrubyHome() {
-        // NOTE: this way of handling jruby.home here requires jruby-complete to be unpacked in the job dir
-        String baseDir = new File(resourcePath("rudoop.rb")).getParentFile().getAbsolutePath();
-        return String.format("%s/META-INF/jruby.home", baseDir);
-    }
-
-    private static String resourcePath(String resourcePath) {
-        URL url = RudoopJobRunner.class.getClassLoader().getResource(resourcePath);
-        if (url == null) {
-            return null;
-        } else {
-            return url.getFile();
-        }
-    }
-
     public int run(String[] args) throws Exception {
-        LinkedList<String> arguments = new LinkedList<String>(Arrays.asList(args));
+        String jobConfigScript = args[0];
+        String[] jobArguments = Arrays.copyOfRange(args, 1, args.length);
 
-        String jobConfigScript = arguments.pop();
-        String inputPath = arguments.get(0);
-        String outputPath = arguments.get(1);
-
-        ScriptingContainer runtime = createConfiguredRuntime();
-        Object runnerClass = runtime.runScriptlet("Rudoop::Configurator");
-        Object runnerInstance = runtime.callMethod(runnerClass, "new", getConf(), getClass(), Map.class, Reduce.class, Combine.class);
-        runtime.put("$rudoop_runner", runnerInstance);
-        runtime.put("$rudoop_arguments", arguments);
-        runtime.runScriptlet(PathType.ABSOLUTE, resourcePath(jobConfigScript));
+        Ruby runtime = createConfiguredRuntime();
+        IRubyObject runnerClass = runtime.evalScriptlet("Rudoop::Configurator");
+        Object[] configuratorArgs = new Object[] {getConf(), getClass(), Map.class, Reduce.class, Combine.class};
+        IRubyObject runnerInstance = runnerClass.callMethod(runtime.getCurrentContext(), "new", JavaUtil.convertJavaArrayToRuby(runtime, configuratorArgs));
+        runtime.defineReadonlyVariable("$rudoop_runner", runnerInstance);
+        runtime.defineReadonlyVariable("$rudoop_arguments", JavaUtil.convertJavaArrayToRubyWithNesting(runtime.getCurrentContext(), jobArguments));
+        runtime.evalScriptlet(String.format("require '%s'", jobConfigScript));
         
-        // TODO: got concurrent modification exceptions here, so making a copy, not sure how it can happen
-        List<JobConf> jobs = new LinkedList<JobConf>((List<JobConf>) runtime.runScriptlet("$rudoop_runner.jobs"));
+        List<JobConf> jobs = (List<JobConf>) JavaUtil.unwrapJavaObject(runnerInstance.callMethod(runtime.getCurrentContext(), "jobs"));
 
         for (JobConf job : jobs) {
             job.set("rudoop.job_config_script", jobConfigScript);
