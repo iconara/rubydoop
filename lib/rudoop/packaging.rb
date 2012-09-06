@@ -22,8 +22,10 @@ namespace :rudoop do
 
   task :jruby_complete do
     unless File.exists?(@jruby_complete_path)
+      $stderr.puts("Downloading #{@jruby_complete_url}")
+      jruby_complete_bytes = open(@jruby_complete_url).read
       File.open(@jruby_complete_path, 'wb') do |io|
-        io.write(open(@jruby_complet_url).read)
+        io.write(jruby_complete_bytes)
       end
     end
   end
