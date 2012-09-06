@@ -1,5 +1,6 @@
 # encoding: utf-8
 
-include Rudoop::ConfigurationDsl
+require 'rudoop'
 
-# $rudoop_runner and $rudoop_arguments will be set by the Java host
+
+include Rudoop::ConfigurationDsl

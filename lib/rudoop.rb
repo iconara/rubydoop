@@ -77,6 +77,7 @@ module Rudoop
 
   module ConfigurationDsl
     def configure(&block)
+      # $rudoop_runner and $rudoop_arguments will be set by the Java host
       if $rudoop_runner
         arguments = $rudoop_arguments.to_a
         configure_ctx = ConfigureContext.new($rudoop_runner)
