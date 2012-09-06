@@ -8,11 +8,18 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.Arrays;
 import java.net.URL;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.conf.*;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapred.*;
-import org.apache.hadoop.util.*;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.Reducer;
+import org.apache.hadoop.mapred.MapReduceBase;
+import org.apache.hadoop.mapred.JobClient;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 
 import org.jruby.Ruby;
 import org.jruby.RubyInstanceConfig;
@@ -29,6 +36,7 @@ public class RudoopJobRunner extends Configured implements Tool {
         protected Ruby runtime;
         protected IRubyObject instance;
 
+        @Override
         public void configure(JobConf jobConf) {
             runtime = createConfiguredRuntime();
             runtime.evalScriptlet(String.format("require '%s'", jobConf.get("rudoop.job_config_script")));
@@ -37,6 +45,13 @@ public class RudoopJobRunner extends Configured implements Tool {
             if (instance.respondsTo("configure")) {
                 instance.callMethod(runtime.getCurrentContext(), "configure", JavaUtil.convertJavaToRuby(runtime, jobConf));
             }
+        }
+
+        @Override
+        public void close() {
+            runtime.tearDown();
+            runtime = null;
+            instance = null;
         }
 
         protected abstract String getCreationMethodName();
@@ -99,6 +114,8 @@ public class RudoopJobRunner extends Configured implements Tool {
             job.set("rudoop.job_config_script", jobConfigScript);
             JobClient.runJob(job);
         }
+
+        runtime.tearDown();
 
         return 0;
     }
