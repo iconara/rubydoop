@@ -48,12 +48,12 @@ module Rudoop
 
     def input(paths, options={})
       paths = paths.join(',') if paths.is_a?(Enumerable)
-      format = options[:format] || Hadoop::Mapred::FileInputFormat
+      format = options[:format] || Hadoop::Mapred::TextInputFormat
       format.set_input_paths(@conf, paths)
     end
 
     def output(dir, options={})
-      format = options[:format] || Hadoop::Mapred::FileOutputFormat
+      format = options[:format] || Hadoop::Mapred::TextOutputFormat
       format.set_output_path(@conf, Hadoop::Fs::Path.new(dir))
     end
 
