@@ -10,23 +10,23 @@ module JavaJar
 end
 
 describe 'Packaging a project' do
-  let :word_count_dir do
-    File.expand_path('../../../examples/word_count', __FILE__)
+  let :sample_project_dir do
+    File.expand_path('../sample_project', __FILE__)
   end
 
   before :all do
-    system %(bash -cl 'cd #{word_count_dir} && bundle exec rake package')
+    system %(bash -cl 'cd #{sample_project_dir} && bundle exec rake package')
   end
 
   around do |example|
-    Dir.chdir(word_count_dir) do
+    Dir.chdir(sample_project_dir) do
       example.run
     end
   end
 
   context 'as a JAR file that' do
     let :jar do
-      Java::JavaUtilJar::JarFile.new(Java::JavaIo::File.new(File.expand_path('build/word_count.jar')))
+      Java::JavaUtilJar::JarFile.new(Java::JavaIo::File.new(File.expand_path('build/sample_project.jar')))
     end
 
     let :jar_entries do
@@ -34,13 +34,18 @@ describe 'Packaging a project' do
     end
 
     it 'includes the project files' do
-      jar_entries.should include('word_count.rb')
-      jar_entries.should include('word_count/mapper.rb')
-      jar_entries.should include('word_count/reducer.rb')
+      jar_entries.should include('sample_project.rb')
+      jar_entries.should include('sample_project/mapper.rb')
+      jar_entries.should include('sample_project/reducer.rb')
     end
 
     it 'includes jruby-complete.jar' do
       jar_entries.should include('lib/jruby-complete-1.6.7.jar')
+    end
+
+    it 'includes gem dependencies' do
+      jar_entries.should include('json.rb')
+      jar_entries.should include('json/')
     end
 
     it 'includes the Rudoop runner and support classes' do

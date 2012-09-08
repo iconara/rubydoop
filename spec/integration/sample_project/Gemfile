@@ -1,0 +1,8 @@
+source :rubygems
+
+gem 'rudoop', :path => '../../..'
+gem 'json'
+
+group :development do
+  gem 'rake'
+end
