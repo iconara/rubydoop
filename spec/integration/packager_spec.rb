@@ -15,7 +15,7 @@ describe 'Packaging a project' do
   end
 
   before :all do
-    system %(bash -cl 'cd #{sample_project_dir} && bundle exec rake package')
+    system %(bash -cl 'cd #{sample_project_dir} && bundle exec rake clean package')
   end
 
   around do |example|
@@ -39,13 +39,17 @@ describe 'Packaging a project' do
       jar_entries.should include('sample_project/reducer.rb')
     end
 
+    it 'includes gem dependencies' do
+      jar_entries.should include('json.rb')
+      jar_entries.should include('json/')
+    end
+
     it 'includes jruby-complete.jar' do
       jar_entries.should include('lib/jruby-complete-1.6.7.jar')
     end
 
-    it 'includes gem dependencies' do
-      jar_entries.should include('json.rb')
-      jar_entries.should include('json/')
+    it 'includes extra JAR dependencies' do
+      jar_entries.should include('lib/sample_project_ext.jar')
     end
 
     it 'includes the Rudoop runner and support classes' do

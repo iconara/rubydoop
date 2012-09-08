@@ -4,7 +4,29 @@ require 'bundler/setup'
 require 'rudoop/packager'
 
 
-task :package do
-  packager = Rudoop::Packager.new
+task :build do
+  mkdir_p 'ext/build'
+  mkdir_p 'ext/dist'
+
+  ant do
+    javac destdir: 'ext/build', includeantruntime: 'no' do
+      classpath { fileset dir: ENV['HADOOP_HOME'], includes: '*.jar' }
+      src { pathelement :location => 'ext/src' }
+    end
+
+    jar destfile: 'ext/dist/sample_project_ext.jar', basedir: 'ext/build' do
+      fileset dir: 'ext/build', includes: '**/*.class'
+    end
+  end
+end
+
+task :package => :build do
+  packager = Rudoop::Packager.new(lib_jars: Dir['ext/dist/*.jar'])
   packager.package!
+end
+
+task :clean do
+  rm_rf 'ext/build'
+  rm_rf 'build'
+  rm_rf 'lib/sample_project_ext.jar'
 end

@@ -30,6 +30,7 @@ module Rudoop
         :rudoop_base_dir => File.expand_path('../../..', __FILE__),
         :project_base_dir => Dir.getwd,
         :gem_groups => [:default],
+        :lib_jars => [],
         :jruby_version => JRUBY_VERSION
       }
     end
@@ -64,14 +65,15 @@ module Rudoop
       # the ant block is instance_exec'ed so instance variables and methods are not in scope
       options = @options
       bundled_gems = load_path
+      lib_jars = [options[:jruby_jar_path], *options[:lib_jars]]
       ant do
         jar :destfile => "#{options[:build_dir]}/#{options[:project_name]}.jar" do
           manifest { attribute :name => 'Main-Class', :value => options[:main_class] }
-          zipfileset :dir => File.dirname(options[:jruby_jar_path]), :includes => File.basename(options[:jruby_jar_path]), :prefix => 'lib'
           zipfileset :src => "#{options[:rudoop_base_dir]}/lib/rudoop.jar"
           fileset :dir => "#{options[:rudoop_base_dir]}/lib", :includes => '**/*.rb', :excludes => '*.jar'
           fileset :dir => "#{options[:project_base_dir]}/lib"
           bundled_gems.each { |path| fileset :dir => path }
+          lib_jars.each { |extra_jar| zipfileset :dir => File.dirname(extra_jar), :includes => File.basename(extra_jar), :prefix => 'lib' }
         end
       end
     end
