@@ -1,0 +1,4 @@
+-I lib
+--color
+--format doc
+spec
