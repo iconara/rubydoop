@@ -29,5 +29,6 @@ end
 task :clean do
   rm_rf 'ext/build'
   rm_rf 'build'
+  rm_rf 'data/output'
   rm_rf 'lib/sample_project_ext.jar'
 end

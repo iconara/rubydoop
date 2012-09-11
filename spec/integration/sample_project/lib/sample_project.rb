@@ -17,6 +17,10 @@ module SampleProject
 
       mapper SampleProject::Mapper
       reducer SampleProject::Reducer
+
+      map_output_key Hadoop::Io::Text
+      map_output_value Hadoop::Io::IntWritable
+      output_value Hadoop::Io::IntWritable
     end
   end
 end
