@@ -20,7 +20,11 @@ describe 'Running a job' do
     end
   end
 
+  let :words do
+    Hash[File.readlines('data/output/part-00000').map { |line| k, v = line.split(/\s/); [k, v.to_i] }]
+  end
+
   it 'runs the job' do
-    File.readlines('data/output/part-00000').should_not be_empty
+    words['anything'].should == 21
   end
 end
