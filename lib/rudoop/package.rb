@@ -8,7 +8,7 @@ require 'set'
 
 
 module Rudoop
-  class Packager
+  class Package
     def initialize(options={})
       @options = default_options.merge(options)
       @options[:project_name] = File.basename(@options[:project_base_dir]) unless @options[:project_name]
@@ -16,7 +16,7 @@ module Rudoop
       @options[:jruby_jar_path] = File.join(@options[:build_dir], "jruby-complete-#{@options[:jruby_version]}.jar")
     end
 
-    def package!
+    def create!
       create_directories!
       fetch_jruby!
       build_jar!
