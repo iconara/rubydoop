@@ -10,6 +10,7 @@ module WordCount
 
     def map(key, value, output, reporter)
       value.to_s.downcase.split.each do |word|
+        word.gsub!(/\W/, '')
         @text.set(word)
         output.collect(@text, @one)
       end
