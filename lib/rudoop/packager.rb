@@ -72,6 +72,7 @@ module Rudoop
           zipfileset :src => "#{options[:rudoop_base_dir]}/lib/rudoop.jar"
           fileset :dir => "#{options[:rudoop_base_dir]}/lib", :includes => '**/*.rb', :excludes => '*.jar'
           fileset :dir => "#{options[:project_base_dir]}/lib"
+          fileset :dir => "#{options[:project_base_dir]}", :includes => 'Gemfile*'
           bundled_gems.each { |path| fileset :dir => path }
           lib_jars.each { |extra_jar| zipfileset :dir => File.dirname(extra_jar), :includes => File.basename(extra_jar), :prefix => 'lib' }
         end
