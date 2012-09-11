@@ -18,10 +18,13 @@ import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.JobConfigurable;
+import org.apache.hadoop.mapred.Partitioner;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 import org.jruby.Ruby;
+import org.jruby.RubyFixnum;
 import org.jruby.RubyInstanceConfig;
 import org.jruby.RubyRuntimeAdapter;
 import org.jruby.CompatVersion;
@@ -32,26 +35,80 @@ import org.jruby.javasupport.JavaUtil;
 
 
 public class RudoopJobRunner extends Configured implements Tool {
-    public static abstract class RudoopMapReduceBase extends MapReduceBase {
-        protected Ruby runtime;
-        protected IRubyObject instance;
+    public static class RudoopConfigurationException extends RuntimeException {
+        public RudoopConfigurationException(String message) {
+            super(message);
+        }
+    }
+
+    public static class RubyInstanceContainer implements JobConfigurable {
+        private String factoryMethodName;
+        private Ruby runtime;
+        private IRubyObject instance;
+
+        public RubyInstanceContainer(String factoryMethodName) {
+            this.factoryMethodName = factoryMethodName;
+        }
+
+        public RubyInstanceContainer(String factoryMethodName, JobConf conf) {
+            this(factoryMethodName);
+            configure(conf);
+        }
 
         @Override
-        public void configure(JobConf jobConf) {
-            runtime = createConfiguredRuntime();
-            runtime.evalScriptlet(String.format("require '%s'", jobConf.get("rudoop.job_config_script")));
+        public void configure(JobConf conf) {
+            runtime = createRuntime();
+            runtime.evalScriptlet(String.format("require '%s'", conf.get("rudoop.job_config_script")));
             IRubyObject rudoopModule = runtime.evalScriptlet("Rudoop");
-            instance = rudoopModule.callMethod(runtime.getCurrentContext(), getCreationMethodName(), JavaUtil.convertJavaToRuby(runtime, jobConf));
-            if (instance.respondsTo("configure")) {
-                instance.callMethod(runtime.getCurrentContext(), "configure", JavaUtil.convertJavaToRuby(runtime, jobConf));
+            if (rudoopModule.respondsTo(factoryMethodName)) {
+                instance = rudoopModule.callMethod(runtime.getCurrentContext(), factoryMethodName, JavaUtil.convertJavaToRuby(runtime, conf));
+                if (instance.respondsTo("configure")) {
+                    callMethod("configure", conf);
+                }
+            } else {
+                throw new RudoopConfigurationException(String.format("Cannot create instance, no such factory method: \"%s\"", factoryMethodName));
             }
+        }
+
+        public boolean isDefined() {
+            return instance != null;
+        }
+
+        public boolean respondsTo(String methodName) {
+            return isDefined() && instance.respondsTo(methodName);
+        }
+
+        public IRubyObject callMethod(String name) {
+            return instance.callMethod(runtime.getCurrentContext(), name);
+        }
+
+        public IRubyObject callMethod(String name, Object... args) {
+            return instance.callMethod(runtime.getCurrentContext(), name, JavaUtil.convertJavaArrayToRuby(runtime, args));
+        }
+
+        public void tearDown() {
+            if (runtime != null) {
+                runtime.tearDown();
+            }
+            runtime = null;
+            instance = null;
+        }
+    }
+
+    public static abstract class RudoopMapReduceBase extends MapReduceBase {
+        protected RubyInstanceContainer instanceContainer;
+
+        @Override
+        public void configure(JobConf conf) {
+            instanceContainer = new RubyInstanceContainer(getCreationMethodName(), conf);
         }
 
         @Override
         public void close() {
-            runtime.tearDown();
-            runtime = null;
-            instance = null;
+            if (instanceContainer.respondsTo("close")) {
+                instanceContainer.callMethod("close");
+            }
+            instanceContainer.tearDown();
         }
 
         protected abstract String getCreationMethodName();
@@ -64,7 +121,7 @@ public class RudoopJobRunner extends Configured implements Tool {
         }
 
         public void map(Object key, Object value, OutputCollector<Object, Object> output, Reporter reporter) throws IOException {
-            instance.callMethod(runtime.getCurrentContext(), "map", JavaUtil.convertJavaArrayToRuby(runtime, new Object[] {key, value, output, reporter}));
+            instanceContainer.callMethod("map", key, value, output, reporter);
         }
     }
 
@@ -75,7 +132,7 @@ public class RudoopJobRunner extends Configured implements Tool {
         }
 
         public void reduce(Object key, Iterator<Object> values, OutputCollector<Object, Object> output, Reporter reporter) throws IOException {
-            instance.callMethod(runtime.getCurrentContext(), "reduce", JavaUtil.convertJavaArrayToRuby(runtime, new Object[] {key, values, output, reporter}));
+            instanceContainer.callMethod("reduce", key, values, output, reporter);
         }
     }
 
@@ -86,7 +143,22 @@ public class RudoopJobRunner extends Configured implements Tool {
         }
     }
 
-    protected static Ruby createConfiguredRuntime() {
+    public static class Partition implements Partitioner<Object, Object> {
+        private RubyInstanceContainer instanceContainer;
+
+        @Override
+        public void configure(JobConf conf) {
+            instanceContainer = new RubyInstanceContainer("create_partitioner", conf);
+        }
+
+        @Override
+        public int getPartition(Object key, Object value, int numPartitions) {
+            RubyFixnum result = (RubyFixnum) instanceContainer.callMethod("partition", key, value, numPartitions);
+            return (int) result.getLongValue();
+        }
+    }
+
+    protected static Ruby createRuntime() {
         RubyInstanceConfig config = new RubyInstanceConfig();
         config.setCompatVersion(CompatVersion.RUBY1_9);
         Ruby runtime = Ruby.newInstance(config);
@@ -100,9 +172,9 @@ public class RudoopJobRunner extends Configured implements Tool {
         String jobConfigScript = args[0];
         String[] jobArguments = Arrays.copyOfRange(args, 1, args.length);
 
-        Ruby runtime = createConfiguredRuntime();
+        Ruby runtime = createRuntime();
         IRubyObject runnerClass = runtime.evalScriptlet("Rudoop::Configurator");
-        Object[] configuratorArgs = new Object[] {getConf(), getClass(), Map.class, Reduce.class, Combine.class};
+        Object[] configuratorArgs = new Object[] {getConf(), getClass(), Map.class, Reduce.class, Combine.class, Partition.class};
         IRubyObject runnerInstance = runnerClass.callMethod(runtime.getCurrentContext(), "new", JavaUtil.convertJavaArrayToRuby(runtime, configuratorArgs));
         runtime.defineReadonlyVariable("$rudoop_runner", runnerInstance);
         runtime.defineReadonlyVariable("$rudoop_arguments", JavaUtil.convertJavaArrayToRubyWithNesting(runtime.getCurrentContext(), jobArguments));
