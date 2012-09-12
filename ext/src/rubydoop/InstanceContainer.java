@@ -31,7 +31,13 @@ public class InstanceContainer {
     }
 
     public void setup(JobContext ctx) {
-        Configuration conf = ctx.getConfiguration();
+        setup(ctx.getConfiguration());
+        if (respondsTo("setup")) {
+            callMethod("setup", ctx);
+        }
+    }
+
+    public void setup(Configuration conf) {
         String jobConfigScript = conf.get("rubydoop.job_config_script");
         runtime = createRuntime();
         runtime.evalScriptlet(String.format("require '%s'", jobConfigScript));
@@ -41,15 +47,16 @@ public class InstanceContainer {
         } else {
             throw new RubydoopConfigurationException(String.format("Cannot create instance, no such factory method: \"%s\"", factoryMethodName));
         }
-        if (respondsTo("setup")) {
-            callMethod("setup", ctx);
-        }
     }
     
     public void cleanup(JobContext ctx) {
         if (respondsTo("cleanup")) {
             callMethod("cleanup", ctx);
         }
+        cleanup(ctx.getConfiguration());
+    }
+
+    public void cleanup(Configuration conf) {
         if (runtime != null) {
             runtime.tearDown();
         }

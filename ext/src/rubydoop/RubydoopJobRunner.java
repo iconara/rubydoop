@@ -40,6 +40,8 @@ public class RubydoopJobRunner extends Configured implements Tool {
             put(symbols.getSymbol("mapper"), MapperProxy.class);
             put(symbols.getSymbol("reducer"), ReducerProxy.class);
             put(symbols.getSymbol("combiner"), CombinerProxy.class);
+            put(symbols.getSymbol("partitioner"), PartitionerProxy.class);
+            put(symbols.getSymbol("grouping_comparator"), GroupingComparatorProxy.class);
         }};
     }
 

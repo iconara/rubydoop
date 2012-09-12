@@ -20,6 +20,8 @@ module Rubydoop
       job.set_mapper_class(@proxy_classes[:mapper]) if job.configuration.get(MAPPER_KEY)
       job.set_reducer_class(@proxy_classes[:reducer]) if job.configuration.get(REDUCER_KEY)
       job.set_combiner_class(@proxy_classes[:combiner]) if job.configuration.get(COMBINER_KEY)
+      job.set_partitioner_class(@proxy_classes[:partitioner]) if job.configuration.get(PARTITIONER_KEY)
+      job.set_grouping_comparator_class(@proxy_classes[:grouping_comparator]) if job.configuration.get(GROUPING_COMPARATOR_KEY)
       @jobs.add(job)
     end
   end

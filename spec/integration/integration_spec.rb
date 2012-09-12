@@ -41,8 +41,7 @@ describe 'Packaging and running a project' do
 
     it 'includes the project files' do
       jar_entries.should include('sample_project.rb')
-      jar_entries.should include('sample_project/mapper.rb')
-      jar_entries.should include('sample_project/reducer.rb')
+      jar_entries.should include('word_count.rb')
     end
 
     it 'includes gem dependencies' do
@@ -78,20 +77,33 @@ describe 'Packaging and running a project' do
   end
 
   context 'Running the project' do
-    let :words do
-      Hash[File.readlines('data/output/part-r-00000').map { |line| k, v = line.split(/\s/); [k, v.to_i] }]
-    end
-
     let :log do
       File.read('data/log')
     end
 
-    it 'runs the mapper and reducer and writes the output in the specified directory' do
-      words['anything'].should == 21
+    context 'the word count job' do
+      let :words do
+        Hash[File.readlines('data/output/word_count/part-r-00000').map { |line| k, v = line.split(/\s/); [k, v.to_i] }]
+      end
+
+      it 'runs the mapper and reducer and writes the output in the specified directory' do
+        words['anything'].should == 21
+      end
+
+      it 'runs the combiner' do
+        log.should match(/Combine input records=[^0]/)
+      end
     end
 
-    it 'runs the combiner' do
-      log.should match(/Combine input records=[^0]/)
+    context 'the uniques job' do
+      let :uniques do
+        Hash[File.readlines('data/output/uniques/part-r-00000').map { |line| k, v = line.split(/\s/); [k, v.to_i] }]
+      end
+
+      it 'runs the mapper and reducer with secondary sorting through the use of a custom partitioner and grouping comparator' do
+        uniques['a'].should == 185
+        uniques['e'].should == 128
+      end
     end
   end
 end

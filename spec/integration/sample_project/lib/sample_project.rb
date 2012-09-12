@@ -3,21 +3,35 @@
 require 'rubydoop'
 require 'json'
 
-require 'sample_project/mapper'
-require 'sample_project/reducer'
+require 'word_count'
+require 'uniques'
 
 
 Rubydoop.configure do |input_path, output_path|
-  job 'sample_project' do
+  job 'word_count' do
     input input_path
-    output output_path
+    output "#{output_path}/word_count"
 
-    mapper SampleProject::Mapper
-    combiner SampleProject::Reducer
-    reducer SampleProject::Reducer
+    mapper WordCount::Mapper
+    combiner WordCount::Reducer
+    reducer WordCount::Reducer
 
-    map_output_key Hadoop::Io::Text
-    map_output_value Hadoop::Io::IntWritable
+    output_key Hadoop::Io::Text
+    output_value Hadoop::Io::IntWritable
+  end
+
+  job 'uniques' do
+    input input_path
+    output "#{output_path}/uniques"
+
+    mapper Uniques::Mapper
+    reducer Uniques::Reducer
+
+    partitioner Uniques::Partitioner
+    grouping_comparator Uniques::GroupingComparator
+
+    map_output_value Hadoop::Io::Text
+    output_key Hadoop::Io::Text
     output_value Hadoop::Io::IntWritable
   end
 end

@@ -65,6 +65,14 @@ module Rubydoop
       @job.configuration.set(COMBINER_KEY, cls.name)
     end
 
+    def partitioner(cls)
+      @job.configuration.set(PARTITIONER_KEY, cls.name)
+    end
+
+    def grouping_comparator(cls)
+      @job.configuration.set(GROUPING_COMPARATOR_KEY, cls.name)
+    end
+
     def raw(&block)
       yield @job
     end
