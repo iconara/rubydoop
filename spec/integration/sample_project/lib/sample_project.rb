@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require 'rudoop'
+require 'rubydoop'
 require 'json'
 
 require 'sample_project/mapper'
@@ -8,7 +8,7 @@ require 'sample_project/reducer'
 
 
 module SampleProject
-  extend Rudoop::ConfigurationDsl
+  extend Rubydoop::ConfigurationDsl
 
   configure do |input_path, output_path|
     job 'sample_project' do

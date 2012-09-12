@@ -2,7 +2,7 @@
 
 require 'bundler/setup'
 require 'ant'
-require 'rudoop/package'
+require 'rubydoop/package'
 
 
 task :build do
@@ -22,7 +22,7 @@ task :build do
 end
 
 task :package => :build do
-  job_package = Rudoop::Package.new(lib_jars: Dir['ext/dist/*.jar'])
+  job_package = Rubydoop::Package.new(lib_jars: Dir['ext/dist/*.jar'])
   job_package.create!
 end
 
