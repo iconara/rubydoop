@@ -15,7 +15,7 @@ describe 'Packaging and running a project' do
   end
 
   before :all do
-    system %(bash -cl 'cd #{sample_project_dir} && bundle exec rake clean package && hadoop jar build/sample_project.jar -conf conf/hadoop-local.xml sample_project data/input data/output')
+    system %(bash -cl 'cd #{sample_project_dir} && bundle exec rake clean package && hadoop jar build/sample_project.jar -conf conf/hadoop-local.xml sample_project data/input data/output' |& tee #{sample_project_dir}/data/log)
   end
 
   around do |example|
@@ -76,8 +76,16 @@ describe 'Packaging and running a project' do
       Hash[File.readlines('data/output/part-r-00000').map { |line| k, v = line.split(/\s/); [k, v.to_i] }]
     end
 
+    let :log do
+      File.read('data/log')
+    end
+
     it 'runs the mapper and reducer and writes the output in the specified directory' do
       words['anything'].should == 21
+    end
+
+    it 'runs the combiner' do
+      log.should match(/Combine input records=[^0]/)
     end
   end
 end

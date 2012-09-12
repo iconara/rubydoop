@@ -13,6 +13,7 @@ Rubydoop.configure do |input_path, output_path|
     output output_path
 
     mapper SampleProject::Mapper
+    combiner SampleProject::Reducer
     reducer SampleProject::Reducer
 
     map_output_key Hadoop::Io::Text
