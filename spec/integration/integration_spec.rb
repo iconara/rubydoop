@@ -15,7 +15,13 @@ describe 'Packaging and running a project' do
   end
 
   before :all do
-    system %(bash -cl 'cd #{sample_project_dir} && bundle exec rake clean package && hadoop jar build/sample_project.jar -conf conf/hadoop-local.xml sample_project data/input data/output' |& tee #{sample_project_dir}/data/log)
+    log_redirection = "2>&1 | tee #{sample_project_dir}/data/log"
+    commands = [
+      "cd #{sample_project_dir}",
+      "bundle exec rake clean package",
+      "hadoop jar build/sample_project.jar -conf conf/hadoop-local.xml sample_project data/input data/output #{log_redirection}"
+    ]
+    system 'bash', '-cl', commands.join(' && ')
   end
 
   around do |example|
