@@ -15,7 +15,7 @@ task :build do
       src { pathelement :location => 'ext/src' }
     end
 
-    jar destfile: 'ext/dist/sample_project_ext.jar', basedir: 'ext/build' do
+    jar destfile: 'ext/dist/test_project_ext.jar', basedir: 'ext/build' do
       fileset dir: 'ext/build', includes: '**/*.class'
     end
   end
@@ -31,5 +31,5 @@ task :clean do
   rm_rf 'build'
   rm_rf 'data/output'
   rm_rf 'data/log'
-  rm_rf 'lib/sample_project_ext.jar'
+  rm_rf 'lib/test_project_ext.jar'
 end

@@ -10,29 +10,29 @@ module JavaJar
 end
 
 describe 'Packaging and running a project' do
-  let :sample_project_dir do
-    File.expand_path('../sample_project', __FILE__)
+  let :test_project_dir do
+    File.expand_path('../test_project', __FILE__)
   end
 
   before :all do
-    log_redirection = "2>&1 | tee #{sample_project_dir}/data/log"
+    log_redirection = "2>&1 | tee #{test_project_dir}/data/log"
     commands = [
-      "cd #{sample_project_dir}",
-      "bundle exec rake clean package",
-      "hadoop jar build/sample_project.jar -conf conf/hadoop-local.xml sample_project data/input data/output #{log_redirection}"
+      "cd #{test_project_dir}",
+      "rake clean package",
+      "hadoop jar build/test_project.jar -conf conf/hadoop-local.xml test_project data/input data/output #{log_redirection}"
     ]
     system 'bash', '-cl', commands.join(' && ')
   end
 
   around do |example|
-    Dir.chdir(sample_project_dir) do
+    Dir.chdir(test_project_dir) do
       example.run
     end
   end
 
   context 'Packaging the project as a JAR file that' do
     let :jar do
-      Java::JavaUtilJar::JarFile.new(Java::JavaIo::File.new(File.expand_path('build/sample_project.jar')))
+      Java::JavaUtilJar::JarFile.new(Java::JavaIo::File.new(File.expand_path('build/test_project.jar')))
     end
 
     let :jar_entries do
@@ -40,8 +40,9 @@ describe 'Packaging and running a project' do
     end
 
     it 'includes the project files' do
-      jar_entries.should include('sample_project.rb')
+      jar_entries.should include('test_project.rb')
       jar_entries.should include('word_count.rb')
+      jar_entries.should include('uniques.rb')
     end
 
     it 'includes gem dependencies' do
@@ -54,7 +55,7 @@ describe 'Packaging and running a project' do
     end
 
     it 'includes extra JAR dependencies' do
-      jar_entries.should include('lib/sample_project_ext.jar')
+      jar_entries.should include('lib/test_project_ext.jar')
     end
 
     it 'includes the Rubydoop runner and support classes' do
