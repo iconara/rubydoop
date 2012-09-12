@@ -72,7 +72,6 @@ module Rubydoop
           zipfileset :src => "#{options[:rubydoop_base_dir]}/lib/rubydoop.jar"
           fileset :dir => "#{options[:rubydoop_base_dir]}/lib", :includes => '**/*.rb', :excludes => '*.jar'
           fileset :dir => "#{options[:project_base_dir]}/lib"
-          fileset :dir => "#{options[:project_base_dir]}", :includes => 'Gemfile*'
           bundled_gems.each { |path| fileset :dir => path }
           lib_jars.each { |extra_jar| zipfileset :dir => File.dirname(extra_jar), :includes => File.basename(extra_jar), :prefix => 'lib' }
         end
