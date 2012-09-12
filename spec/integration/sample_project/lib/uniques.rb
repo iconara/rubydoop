@@ -7,9 +7,9 @@ module Uniques
   class Mapper
     def map(key, value, context)
       value.to_s.split.each do |word|
+        word.strip!
         word.downcase!
         word.gsub!(/\W/, '')
-        word.strip!
         unless word.empty?
           context.write(Hadoop::Io::Text.new(word), Hadoop::Io::Text.new(word))
         end
@@ -37,10 +37,8 @@ module Uniques
 
   class GroupingComparator
     def compare_raw(bytes1, start1, length1, bytes2, start2, length2)
-      s1 = Hadoop::Io::Text.decode(bytes1, start1, length1).to_s
-      s2 = Hadoop::Io::Text.decode(bytes2, start2, length2).to_s
       # NOTE: first byte is length
-      s1[1] <=> s2[1]
+      bytes1[start1 + 1] <=> bytes2[start2 + 1]
     end
   end
 end
