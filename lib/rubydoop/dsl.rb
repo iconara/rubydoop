@@ -1,14 +1,18 @@
 # encoding: utf-8
 
 module Rubydoop
+  def self.configure(&block)
+    # $rubydoop_configurator and $rubydoop_arguments will be set by the Java host
+    if $rubydoop_configurator
+      arguments = $rubydoop_arguments.to_a
+      configure_ctx = ConfigureContext.new($rubydoop_configurator)
+      configure_ctx.instance_exec(*arguments, &block)
+    end
+  end
+
   module ConfigurationDsl
     def configure(&block)
-      # $rubydoop_configurator and $rubydoop_arguments will be set by the Java host
-      if $rubydoop_configurator
-        arguments = $rubydoop_arguments.to_a
-        configure_ctx = ConfigureContext.new($rubydoop_configurator)
-        configure_ctx.instance_exec(*arguments, &block)
-      end
+      Rubydoop.configure(&block)
     end
   end
 
@@ -59,6 +63,10 @@ module Rubydoop
 
     def combiner(cls)
       @job.configuration.set(COMBINER_KEY, cls.name)
+    end
+
+    def raw(&block)
+      yield @job
     end
 
     def self.class_setter(dsl_name)

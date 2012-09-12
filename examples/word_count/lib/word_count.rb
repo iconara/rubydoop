@@ -1,11 +1,10 @@
 # encoding: utf-8
 
-require 'rubydoop/configure'
 require 'word_count/mapper'
 require 'word_count/reducer'
 
 
-configure do |input_path, output_path|
+Rudoop.configure do |input_path, output_path|
   job 'word_count' do
     input input_path
     output output_path
