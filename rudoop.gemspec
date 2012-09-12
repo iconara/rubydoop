@@ -12,8 +12,8 @@ Gem::Specification.new do |s|
   s.authors     = ['Theo Hultberg']
   s.email       = ['theo@iconara.net']
   s.homepage    = 'http://github.com/iconara/rubydoop'
-  s.summary     = %q{}
-  s.description = %q{}
+  s.summary     = %q{Write Hadoop jobs in Ruby}
+  s.description = %q{Rubydoop embeds a JRuby runtime in Hadoop, letting you write map reduce code in Ruby without using the streaming APIs}
 
   s.rubyforge_project = 'rubydoop'
   
