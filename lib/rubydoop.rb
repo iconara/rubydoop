@@ -20,7 +20,7 @@ module Hadoop
   end
 end
 
-module Rudoop
+module Rubydoop
   class ConfigureContext
     def initialize(runner)
       @runner = runner
@@ -62,19 +62,19 @@ module Rudoop
     end
 
     def mapper(cls)
-      @conf.set('rudoop.mapper', cls.name)
+      @conf.set('rubydoop.mapper', cls.name)
     end
 
     def reducer(cls)
-      @conf.set('rudoop.reducer', cls.name)
+      @conf.set('rubydoop.reducer', cls.name)
     end
 
     def combiner(cls)
-      @conf.set('rudoop.combiner', cls.name)
+      @conf.set('rubydoop.combiner', cls.name)
     end
 
     def partitioner(cls)
-      @conf.set('rudoop.partitioner', cls.name)
+      @conf.set('rubydoop.partitioner', cls.name)
     end
 
     def output_value_grouping_comparator(cls)
@@ -90,10 +90,10 @@ module Rudoop
 
   module ConfigurationDsl
     def configure(&block)
-      # $rudoop_runner and $rudoop_arguments will be set by the Java host
-      if $rudoop_runner
-        arguments = $rudoop_arguments.to_a
-        configure_ctx = ConfigureContext.new($rudoop_runner)
+      # $rubydoop_runner and $rubydoop_arguments will be set by the Java host
+      if $rubydoop_runner
+        arguments = $rubydoop_arguments.to_a
+        configure_ctx = ConfigureContext.new($rubydoop_runner)
         configure_ctx.instance_exec(*arguments, &block)
       end
     end
@@ -114,28 +114,28 @@ module Rudoop
     end
 
     def add_job(job_conf)
-      job_conf.set_mapper_class(@java_mapper_class) if job_conf.get('rudoop.mapper')
-      job_conf.set_reducer_class(@java_reducer_class) if job_conf.get('rudoop.reducer')
-      job_conf.set_combiner_class(@java_combiner_class) if job_conf.get('rudoop.combiner')
-      job_conf.set_partitioner_class(@java_partitioner_class) if job_conf.get('rudoop.partitioner')
+      job_conf.set_mapper_class(@java_mapper_class) if job_conf.get('rubydoop.mapper')
+      job_conf.set_reducer_class(@java_reducer_class) if job_conf.get('rubydoop.reducer')
+      job_conf.set_combiner_class(@java_combiner_class) if job_conf.get('rubydoop.combiner')
+      job_conf.set_partitioner_class(@java_partitioner_class) if job_conf.get('rubydoop.partitioner')
       @jobs.add(job_conf)
     end
   end
 
   def self.create_mapper(conf)
-    create_instance(conf.get('rudoop.mapper'))
+    create_instance(conf.get('rubydoop.mapper'))
   end
 
   def self.create_reducer(conf)
-    create_instance(conf.get('rudoop.reducer'))
+    create_instance(conf.get('rubydoop.reducer'))
   end
 
   def self.create_combiner(conf)
-    create_instance(conf.get('rudoop.combiner'))
+    create_instance(conf.get('rubydoop.combiner'))
   end
 
   def self.create_partitioner(conf)
-    create_instance(conf.get('rudoop.partitioner'))
+    create_instance(conf.get('rubydoop.partitioner'))
   end
 
   def self.create_instance(const_path)

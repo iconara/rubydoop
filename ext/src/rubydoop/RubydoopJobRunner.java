@@ -1,4 +1,4 @@
-package rudoop;
+package rubydoop;
 
 
 import java.io.IOException;
@@ -34,9 +34,9 @@ import org.jruby.javasupport.JavaUtil;
 
 
 
-public class RudoopJobRunner extends Configured implements Tool {
-    public static class RudoopConfigurationException extends RuntimeException {
-        public RudoopConfigurationException(String message) {
+public class RubydoopJobRunner extends Configured implements Tool {
+    public static class RubydoopConfigurationException extends RuntimeException {
+        public RubydoopConfigurationException(String message) {
             super(message);
         }
     }
@@ -58,15 +58,15 @@ public class RudoopJobRunner extends Configured implements Tool {
         @Override
         public void configure(JobConf conf) {
             runtime = createRuntime();
-            runtime.evalScriptlet(String.format("require '%s'", conf.get("rudoop.job_config_script")));
-            IRubyObject rudoopModule = runtime.evalScriptlet("Rudoop");
-            if (rudoopModule.respondsTo(factoryMethodName)) {
-                instance = rudoopModule.callMethod(runtime.getCurrentContext(), factoryMethodName, JavaUtil.convertJavaToRuby(runtime, conf));
+            runtime.evalScriptlet(String.format("require '%s'", conf.get("rubydoop.job_config_script")));
+            IRubyObject rubydoopModule = runtime.evalScriptlet("Rubydoop");
+            if (rubydoopModule.respondsTo(factoryMethodName)) {
+                instance = rubydoopModule.callMethod(runtime.getCurrentContext(), factoryMethodName, JavaUtil.convertJavaToRuby(runtime, conf));
                 if (instance.respondsTo("configure")) {
                     callMethod("configure", conf);
                 }
             } else {
-                throw new RudoopConfigurationException(String.format("Cannot create instance, no such factory method: \"%s\"", factoryMethodName));
+                throw new RubydoopConfigurationException(String.format("Cannot create instance, no such factory method: \"%s\"", factoryMethodName));
             }
         }
 
@@ -95,7 +95,7 @@ public class RudoopJobRunner extends Configured implements Tool {
         }
     }
 
-    public static abstract class RudoopMapReduceBase extends MapReduceBase {
+    public static abstract class RubydoopMapReduceBase extends MapReduceBase {
         protected RubyInstanceContainer instanceContainer;
 
         @Override
@@ -114,7 +114,7 @@ public class RudoopJobRunner extends Configured implements Tool {
         protected abstract String getCreationMethodName();
     }
 
-    public static class Map extends RudoopMapReduceBase implements Mapper<Object, Object, Object, Object> {
+    public static class Map extends RubydoopMapReduceBase implements Mapper<Object, Object, Object, Object> {
         @Override
         protected String getCreationMethodName() {
             return "create_mapper";
@@ -125,7 +125,7 @@ public class RudoopJobRunner extends Configured implements Tool {
         }
     }
 
-    public static class Reduce extends RudoopMapReduceBase implements Reducer<Object, Object, Object, Object> {
+    public static class Reduce extends RubydoopMapReduceBase implements Reducer<Object, Object, Object, Object> {
         @Override
         protected String getCreationMethodName() {
             return "create_reducer";
@@ -164,7 +164,7 @@ public class RudoopJobRunner extends Configured implements Tool {
         Ruby runtime = Ruby.newInstance(config);
         // NOTE: this is a hack to work around JRUBY-6879, the load path contains both 1.9 and 1.8
         runtime.evalScriptlet("$LOAD_PATH.reject! { |path| path.include?('site_ruby/1.8')}");
-        runtime.evalScriptlet("require 'rudoop'");
+        runtime.evalScriptlet("require 'rubydoop'");
         return runtime;
     }
 
@@ -173,17 +173,17 @@ public class RudoopJobRunner extends Configured implements Tool {
         String[] jobArguments = Arrays.copyOfRange(args, 1, args.length);
 
         Ruby runtime = createRuntime();
-        IRubyObject runnerClass = runtime.evalScriptlet("Rudoop::Configurator");
+        IRubyObject runnerClass = runtime.evalScriptlet("Rubydoop::Configurator");
         Object[] configuratorArgs = new Object[] {getConf(), getClass(), Map.class, Reduce.class, Combine.class, Partition.class};
         IRubyObject runnerInstance = runnerClass.callMethod(runtime.getCurrentContext(), "new", JavaUtil.convertJavaArrayToRuby(runtime, configuratorArgs));
-        runtime.defineReadonlyVariable("$rudoop_runner", runnerInstance);
-        runtime.defineReadonlyVariable("$rudoop_arguments", JavaUtil.convertJavaArrayToRubyWithNesting(runtime.getCurrentContext(), jobArguments));
+        runtime.defineReadonlyVariable("$rubydoop_runner", runnerInstance);
+        runtime.defineReadonlyVariable("$rubydoop_arguments", JavaUtil.convertJavaArrayToRubyWithNesting(runtime.getCurrentContext(), jobArguments));
         runtime.evalScriptlet(String.format("require '%s'", jobConfigScript));
         
         List<JobConf> jobs = (List<JobConf>) JavaUtil.unwrapJavaObject(runnerInstance.callMethod(runtime.getCurrentContext(), "jobs"));
 
         for (JobConf job : jobs) {
-            job.set("rudoop.job_config_script", jobConfigScript);
+            job.set("rubydoop.job_config_script", jobConfigScript);
             JobClient.runJob(job);
         }
 
@@ -193,6 +193,6 @@ public class RudoopJobRunner extends Configured implements Tool {
     }
 
     public static void main(String[] args) throws Exception {
-        System.exit(ToolRunner.run(new Configuration(), new RudoopJobRunner(), args));
+        System.exit(ToolRunner.run(new Configuration(), new RubydoopJobRunner(), args));
     }
 }

@@ -1,1 +1,1 @@
-rvm --create use jruby-1.6.7@rudoop_sample_project
+rvm --create use jruby-1.6.7@rubydoop_sample_project

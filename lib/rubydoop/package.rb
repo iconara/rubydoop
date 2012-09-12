@@ -7,7 +7,7 @@ require 'fileutils'
 require 'set'
 
 
-module Rudoop
+module Rubydoop
   class Package
     def initialize(options={})
       @options = default_options.merge(options)
@@ -26,8 +26,8 @@ module Rudoop
 
     def default_options
       defaults = {
-        :main_class => 'rudoop.RudoopJobRunner',
-        :rudoop_base_dir => File.expand_path('../../..', __FILE__),
+        :main_class => 'rubydoop.RubydoopJobRunner',
+        :rubydoop_base_dir => File.expand_path('../../..', __FILE__),
         :project_base_dir => Dir.getwd,
         :gem_groups => [:default],
         :lib_jars => [],
@@ -69,8 +69,8 @@ module Rudoop
       ant do
         jar :destfile => "#{options[:build_dir]}/#{options[:project_name]}.jar" do
           manifest { attribute :name => 'Main-Class', :value => options[:main_class] }
-          zipfileset :src => "#{options[:rudoop_base_dir]}/lib/rudoop.jar"
-          fileset :dir => "#{options[:rudoop_base_dir]}/lib", :includes => '**/*.rb', :excludes => '*.jar'
+          zipfileset :src => "#{options[:rubydoop_base_dir]}/lib/rubydoop.jar"
+          fileset :dir => "#{options[:rubydoop_base_dir]}/lib", :includes => '**/*.rb', :excludes => '*.jar'
           fileset :dir => "#{options[:project_base_dir]}/lib"
           fileset :dir => "#{options[:project_base_dir]}", :includes => 'Gemfile*'
           bundled_gems.each { |path| fileset :dir => path }
@@ -81,7 +81,7 @@ module Rudoop
 
     def load_path
       Bundler.definition.specs_for(@options[:gem_groups]).flat_map do |spec|
-        if spec.full_name !~ /^(?:bundler|rudoop)-\d+/
+        if spec.full_name !~ /^(?:bundler|rubydoop)-\d+/
           spec.require_paths.map do |rp| 
             "#{spec.full_gem_path}/#{rp}"
           end

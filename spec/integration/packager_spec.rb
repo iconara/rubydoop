@@ -52,20 +52,19 @@ describe 'Packaging a project' do
       jar_entries.should include('lib/sample_project_ext.jar')
     end
 
-    it 'includes the Rudoop runner and support classes' do
-      jar_entries.should include('rudoop/RudoopJobRunner.class')
-      jar_entries.should include('rudoop/RudoopJobRunner$Map.class')
-      jar_entries.should include('rudoop/RudoopJobRunner$Reduce.class')
-      jar_entries.should include('rudoop/RudoopJobRunner$Combine.class')
+    it 'includes the Rubydoop runner and support classes' do
+      jar_entries.should include('rubydoop/RubydoopJobRunner.class')
+      jar_entries.should include('rubydoop/RubydoopJobRunner$Map.class')
+      jar_entries.should include('rubydoop/RubydoopJobRunner$Reduce.class')
+      jar_entries.should include('rubydoop/RubydoopJobRunner$Combine.class')
     end
 
-    it 'includes the Rudoop setup and configuration scripts' do
-      jar_entries.should include('rudoop.rb')
-      jar_entries.should include('rudoop/configure.rb')
+    it 'includes the Rubydoop configuration scripts' do
+      jar_entries.should include('rubydoop.rb')
     end
 
-    it 'has the RudoopJobRunner as its main class' do
-      jar.manifest.main_attributes.get(Java::JavaUtilJar::Attributes::Name::MAIN_CLASS).should == 'rudoop.RudoopJobRunner'
+    it 'has the RubydoopJobRunner as its main class' do
+      jar.manifest.main_attributes.get(Java::JavaUtilJar::Attributes::Name::MAIN_CLASS).should == 'rubydoop.RubydoopJobRunner'
     end
   end
 end
