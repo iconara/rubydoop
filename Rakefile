@@ -1,6 +1,5 @@
 # encoding: utf-8
 
-require 'bundler/gem_tasks'
 require 'ant'
 
 
@@ -36,4 +35,19 @@ namespace :build do
   end
 end
 
+desc 'Build the lib/rubydoop.jar'
 task :build => 'build:jars'
+
+desc 'Tag & release the gem'
+task :release do
+  $: << 'lib'
+  require 'rubydoop/version'
+
+  version_string = "v#{Rubydoop::VERSION}"
+  
+  unless %x(git tag -l).include?(version_string)
+    system %(git tag -a #{version_string} -m #{version_string})
+  end
+
+  system %(git push && git push --tags; gem build rubydoop.gemspec && gem push rubydoop-*.gem && mv rubydoop-*.gem pkg)
+end
