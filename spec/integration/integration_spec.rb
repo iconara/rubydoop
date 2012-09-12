@@ -9,13 +9,13 @@ module JavaJar
   include_package 'java.util.jar'
 end
 
-describe 'Packaging a project' do
+describe 'Packaging and running a project' do
   let :sample_project_dir do
     File.expand_path('../sample_project', __FILE__)
   end
 
   before :all do
-    system %(bash -cl 'cd #{sample_project_dir} && bundle exec rake clean package')
+    system %(bash -cl 'cd #{sample_project_dir} && bundle exec rake clean package && hadoop jar build/sample_project.jar -conf conf/hadoop-local.xml sample_project data/input data/output')
   end
 
   around do |example|
@@ -24,7 +24,7 @@ describe 'Packaging a project' do
     end
   end
 
-  context 'as a JAR file that' do
+  context 'Packaging the project as a JAR file that' do
     let :jar do
       Java::JavaUtilJar::JarFile.new(Java::JavaIo::File.new(File.expand_path('build/sample_project.jar')))
     end
@@ -54,17 +54,30 @@ describe 'Packaging a project' do
 
     it 'includes the Rubydoop runner and support classes' do
       jar_entries.should include('rubydoop/RubydoopJobRunner.class')
-      jar_entries.should include('rubydoop/RubydoopJobRunner$Map.class')
-      jar_entries.should include('rubydoop/RubydoopJobRunner$Reduce.class')
-      jar_entries.should include('rubydoop/RubydoopJobRunner$Combine.class')
+      jar_entries.should include('rubydoop/MapperProxy.class')
+      jar_entries.should include('rubydoop/ReducerProxy.class')
+      jar_entries.should include('rubydoop/CombinerProxy.class')
+      jar_entries.should include('rubydoop/InstanceContainer.class')
     end
 
     it 'includes the Rubydoop configuration scripts' do
       jar_entries.should include('rubydoop.rb')
+      jar_entries.should include('rubydoop/configurator.rb')
+      jar_entries.should include('rubydoop/dsl.rb')
     end
 
     it 'has the RubydoopJobRunner as its main class' do
       jar.manifest.main_attributes.get(Java::JavaUtilJar::Attributes::Name::MAIN_CLASS).should == 'rubydoop.RubydoopJobRunner'
+    end
+  end
+
+  context 'Running the project' do
+    let :words do
+      Hash[File.readlines('data/output/part-r-00000').map { |line| k, v = line.split(/\s/); [k, v.to_i] }]
+    end
+
+    it 'runs the mapper and reducer and writes the output in the specified directory' do
+      words['anything'].should == 21
     end
   end
 end
