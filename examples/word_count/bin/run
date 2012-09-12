@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [[ $# != 2 ]]; then
+  echo "Usage: run path/to/input path/to/output"
+  exit 1
+fi
+
+if [[ -e "$2" ]]; then
+  echo "Error: output path exists"
+  exit 2
+fi
+
+cd $(dirname $0)/..
+
+hadoop jar build/word_count.jar -conf conf/hadoop-local.xml word_count "$@"
