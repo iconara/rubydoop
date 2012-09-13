@@ -42,4 +42,3 @@ module Rubydoop
 end
 
 require 'rubydoop/dsl'
-require 'rubydoop/configurator'

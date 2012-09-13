@@ -12,6 +12,8 @@ import org.jruby.javasupport.JavaUtil;
 
 
 public class InstanceContainer {
+    public static final String JOB_SETUP_SCRIPT_KEY = "rubydoop.job_setup_script";
+
     private String factoryMethodName;
     private Ruby runtime;
     private IRubyObject instance;
@@ -38,7 +40,7 @@ public class InstanceContainer {
     }
 
     public void setup(Configuration conf) {
-        String jobConfigScript = conf.get("rubydoop.job_config_script");
+        String jobConfigScript = conf.get(JOB_SETUP_SCRIPT_KEY);
         runtime = createRuntime();
         runtime.evalScriptlet(String.format("require '%s'", jobConfigScript));
         IRubyObject rubydoopModule = runtime.evalScriptlet("Rubydoop");

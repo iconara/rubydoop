@@ -47,17 +47,18 @@ public class RubydoopJobRunner extends Configured implements Tool {
 
     private List<Job> configureJobs(String jobSetupScript, String[] arguments) throws Exception {
         Ruby runtime = InstanceContainer.createRuntime();
-        IRubyObject runnerClass = runtime.evalScriptlet("Rubydoop::Configurator");
-        IRubyObject[] args = JavaUtil.convertJavaArrayToRuby(runtime, new Object[] {getConf(), proxyClasses(runtime.getSymbolTable())});
-        IRubyObject configuratorInstance = runnerClass.callMethod(runtime.getCurrentContext(), "new", args);
-        runtime.defineReadonlyVariable("$rubydoop_configurator", configuratorInstance);
-        runtime.defineReadonlyVariable("$rubydoop_arguments", JavaUtil.convertJavaArrayToRubyWithNesting(runtime.getCurrentContext(), arguments));
+        IRubyObject contextClass = runtime.evalScriptlet("Rubydoop::Context");
+        IRubyObject rubyArguments = JavaUtil.convertJavaArrayToRubyWithNesting(runtime.getCurrentContext(), arguments);
+        Map<RubySymbol, Class<?>> proxyClasses = proxyClasses(runtime.getSymbolTable());
+        IRubyObject[] contextArgs = JavaUtil.convertJavaArrayToRuby(runtime, new Object[] {getConf(), proxyClasses, rubyArguments});
+        IRubyObject contextInstance = contextClass.callMethod(runtime.getCurrentContext(), "new", contextArgs);
+        runtime.defineReadonlyVariable("$rubydoop_context", contextInstance);
         runtime.evalScriptlet(String.format("require '%s'", jobSetupScript));
         
-        List<Job> jobs = (List<Job>) JavaUtil.unwrapJavaObject(configuratorInstance.callMethod(runtime.getCurrentContext(), "jobs"));
+        List<Job> jobs = (List<Job>) JavaUtil.unwrapJavaObject(contextInstance.callMethod(runtime.getCurrentContext(), "jobs"));
 
         for (Job job : jobs) {
-            job.getConfiguration().set("rubydoop.job_config_script", jobSetupScript);
+            job.getConfiguration().set(InstanceContainer.JOB_SETUP_SCRIPT_KEY, jobSetupScript);
             job.setJarByClass(getClass());
         }
 

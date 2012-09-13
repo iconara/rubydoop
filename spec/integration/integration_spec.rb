@@ -68,7 +68,6 @@ describe 'Packaging and running a project' do
 
     it 'includes the Rubydoop configuration scripts' do
       jar_entries.should include('rubydoop.rb')
-      jar_entries.should include('rubydoop/configurator.rb')
       jar_entries.should include('rubydoop/dsl.rb')
     end
 
