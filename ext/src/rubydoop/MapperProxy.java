@@ -8,7 +8,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 
 public class MapperProxy extends Mapper<Object, Object, Object, Object> {
   private InstanceContainer instance;
-  protected String factoryMethodName = "create_mapper";
 
   public void map(Object key, Object value, Context ctx) throws IOException, InterruptedException {
     instance.callMethod("map", key, value, ctx);
@@ -20,7 +19,7 @@ public class MapperProxy extends Mapper<Object, Object, Object, Object> {
 
   protected void setup(Context ctx) throws IOException, InterruptedException {
     super.setup(ctx);
-    instance = new InstanceContainer(factoryMethodName);
+    instance = new InstanceContainer("create_mapper");
     instance.setup(ctx);
   }
 

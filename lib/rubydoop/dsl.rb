@@ -199,6 +199,20 @@ module Rubydoop
       @job.set_grouping_comparator_class(@context.proxy_class(:grouping_comparator))
     end
 
+    # Sets a custom sort comparator.
+    #
+    # The equivalent of calling `setSortComparatorClass` on a Hadoop job, 
+    # but instead of a Java class you pass a Ruby class and Rubydoop will wrap
+    # it in a way that works with Hadoop.
+    #
+    # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html#setSortComparatorClass(java.lang.Class) Hadoop's Job#setSortComparatorClass
+    #
+    # @param [Class] cls The (Ruby) comparator class.
+    def sort_comparator(cls)
+      @job.configuration.set(SORT_COMPARATOR_KEY, cls.name)
+      @job.set_sort_comparator_class(@context.proxy_class(:sort_comparator))
+    end
+
     # If you need to manipulate the Hadoop job in some that isn't covered by
     # this DSL, this is the method for you. It yields the `Job`, letting you
     # do whatever you want with it.
