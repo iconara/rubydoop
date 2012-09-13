@@ -87,14 +87,27 @@ module Rubydoop
 
     # Sets a job property.
     #
-    # Calls `set` on the Hadoop Job's configuration.
+    # Calls `set`/`setBoolean`/`setLong`/`setFloat` on the Hadoop Job's 
+    # configuration (exact method depends on the type of the value).
     #
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/conf/Configuration.html#set(java.lang.String,%20java.lang.String) Hadoop's Configuration#set
+    # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/conf/Configuration.html#set(java.lang.String,%20java.lang.String) Hadoop's Configuration#setBoolean
+    # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/conf/Configuration.html#set(java.lang.String,%20java.lang.String) Hadoop's Configuration#setLong
+    # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/conf/Configuration.html#set(java.lang.String,%20java.lang.String) Hadoop's Configuration#setFloat
     #
     # @param [String] property The property name
-    # @param [String] value The property value, must be a string
+    # @param [String] value The property value
     def set(property, value)
-      @job.configuration.set(property, value)
+      case value
+      when Fixnum, Integer
+        @job.configuration.set_long(property, value)
+      when Float
+        @job.configuration.set_float(property, value)
+      when true, false
+        @job.configuration.set_boolean(property, value)
+      else
+        @job.configuration.set(property, value)
+      end
     end
 
     # Sets the mapper class.
