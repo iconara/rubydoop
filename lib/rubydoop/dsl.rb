@@ -58,7 +58,7 @@ module Rubydoop
     #
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html#setInputFormatClass(java.lang.Class) Hadoop's Job#setInputFormatClass
     #
-    # @param [String|Enumerable] paths The input paths, either a comma separated
+    # @param [String, Enumerable] paths The input paths, either a comma separated
     #   string or an `Enumerable` of strings (which will be joined with a comma).
     # @param [Hash] options
     # @option options [JavaClass] :format The input format to use, defaults to `TextInputFormat`
@@ -96,10 +96,10 @@ module Rubydoop
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/conf/Configuration.html#set(java.lang.String,%20java.lang.String) Hadoop's Configuration#setFloat
     #
     # @param [String] property The property name
-    # @param [String] value The property value
+    # @param [String, Numeric, Boolean] value The property value
     def set(property, value)
       case value
-      when Fixnum, Integer
+      when Integer
         @job.configuration.set_long(property, value)
       when Float
         @job.configuration.set_float(property, value)
@@ -193,7 +193,7 @@ module Rubydoop
     #
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html#setGroupingComparatorClass(java.lang.Class) Hadoop's Job#setGroupingComparatorClass
     #
-    # @param [Class] cls The (Ruby) partitioner class.
+    # @param [Class] cls The (Ruby) comparator class.
     def grouping_comparator(cls)
       @job.configuration.set(GROUPING_COMPARATOR_KEY, cls.name)
       @job.set_grouping_comparator_class(@context.proxy_class(:grouping_comparator))
