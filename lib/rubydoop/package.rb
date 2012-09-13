@@ -8,18 +8,48 @@ require 'set'
 
 
 module Rubydoop
+  # Utility for making a job JAR that works with Hadoop.
+  #
+  # @example Easy to use from Rake
+  #     task :package do
+  #       Rudoop::Package.create!
+  #     end
   class Package
+    # A package has sane defaults that works in most situations, but almost 
+    # everything can be changed.
+    #
+    # If you have extra JAR files that you need to make available for your job
+    # you can specify them with the `:lib_jars` option.
+    #
+    # @param [Hash] options
+    # @option options [String]        :project_base_dir The project's base dir, defaults to the current directory (the assumption is that Package will be used from a Rake task)
+    # @option options [String]        :project_name     The name of the JAR file (minus .jar), defaults to the directory name of the `:project_base_dir`
+    # @option options [String]        :build_dir        The directory to put the final JAR into, defaults to `:project_base_dir + '/build'`
+    # @option options [Array<String>] :gem_groups       All gems from these Gemfile groups will be included, defaults to `[:default]` (the top-level group of a Gemfile)
+    # @option options [Array<String>] :lib_jars         Paths to extra JAR files to include in the JAR's lib directory (where they will be on the classpath when the job is run)
+    # @option options [String]        :jruby_version    The JRuby version to package, defaults to `JRUBY_VERSION`
+    # @option options [String]        :jruby_jar_path   The path to a local copy of `jruby-complete.jar`, defaults to downloading and caching a version defined by `:jruby_version`
     def initialize(options={})
       @options = default_options.merge(options)
       @options[:project_name] = File.basename(@options[:project_base_dir]) unless @options[:project_name]
       @options[:build_dir] = File.join(@options[:project_base_dir], 'build') unless @options[:build_dir]
-      @options[:jruby_jar_path] = File.join(@options[:build_dir], "jruby-complete-#{@options[:jruby_version]}.jar")
+      @options[:jruby_jar_path] = File.join(@options[:build_dir], "jruby-complete-#{@options[:jruby_version]}.jar") unless @options[:jruby_jar_path]
     end
 
+    # Create the JAR package, see {Package#initialize} for configuration options.
+    #
+    # On the first run a complete JRuby runtime JAR will be downloaded 
+    # (`jruby-complete.jar`) and locally cached, but if you already have a
+    # copy in a local Ivy or Maven repository that will be used instead.
     def create!
       create_directories!
       fetch_jruby!
       build_jar!
+    end
+
+    # A shortcut for `Package.new(options).create!`.
+    def self.create!(options={})
+      new(options).create!
     end
 
     private
