@@ -3,6 +3,7 @@
 require 'java'
 
 
+# @private
 module Hadoop
   module Io
     include_package 'org.apache.hadoop.io'

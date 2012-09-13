@@ -2,3 +2,5 @@
 /ext/build
 /tmp
 /pkg
+/doc
+/.yardoc

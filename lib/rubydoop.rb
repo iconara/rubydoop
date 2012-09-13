@@ -6,23 +6,30 @@ $LOAD_PATH << File.expand_path('..', __FILE__)
 require 'hadoop'
 
 
+# See {JobDefinition} for the job configuration DSL documentation, and {Package}
+# for the packaging documentation.
 module Rubydoop
+  # @private
   def self.create_mapper(conf)
     create_instance(conf.get(MAPPER_KEY))
   end
 
+  # @private
   def self.create_reducer(conf)
     create_instance(conf.get(REDUCER_KEY))
   end
 
+  # @private
   def self.create_combiner(conf)
     create_instance(conf.get(COMBINER_KEY))
   end
 
+  # @private
   def self.create_partitioner(conf)
     create_instance(conf.get(PARTITIONER_KEY))
   end
 
+  # @private
   def self.create_grouping_comparator(conf)
     create_instance(conf.get(GROUPING_COMPARATOR_KEY))
   end

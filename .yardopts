@@ -1,0 +1,6 @@
+--title Rubydoop
+--readme README.md
+--charset utf-8
+--markup markdown
+--no-private
+'lib/**/*.rb'
