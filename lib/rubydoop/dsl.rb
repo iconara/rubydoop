@@ -219,7 +219,7 @@ module Rubydoop
     #
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html Hadoop's Job
     #
-    # @yield [job] The raw Hadoop Job instance
+    # @yieldparam [Hadoop::Mapreduce::Job] job The raw Hadoop Job instance
     def raw(&block)
       yield @job
     end
