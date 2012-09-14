@@ -273,20 +273,18 @@ module Rubydoop
 
   # @private
   class Context
-    java_import 'java.util.LinkedList'
-
     attr_reader :jobs, :arguments
 
     def initialize(conf, proxy_classes, arguments)
       @conf = conf
       @proxy_classes = proxy_classes
       @arguments = arguments
-      @jobs = LinkedList.new
+      @jobs = []
     end
 
     def create_job(name)
       hadoop_job = Hadoop::Mapreduce::Job.new(@conf, name)
-      @jobs.add(hadoop_job)
+      @jobs << hadoop_job
       JobDefinition.new(self, hadoop_job)
     end
 

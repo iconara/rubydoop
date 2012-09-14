@@ -56,7 +56,7 @@ public class RubydoopJobRunner extends Configured implements Tool {
         runtime.defineReadonlyVariable("$rubydoop_context", contextInstance);
         runtime.evalScriptlet(String.format("require '%s'", jobSetupScript));
         
-        List<Job> jobs = (List<Job>) JavaUtil.unwrapJavaObject(contextInstance.callMethod(runtime.getCurrentContext(), "jobs"));
+        List<Job> jobs = (List<Job>) contextInstance.callMethod(runtime.getCurrentContext(), "jobs");
 
         for (Job job : jobs) {
             job.getConfiguration().set(InstanceContainer.JOB_SETUP_SCRIPT_KEY, jobSetupScript);
