@@ -19,19 +19,20 @@ Rubydoop.configure do |input_path, output_path|
     output_key Hadoop::Io::Text
     output_value Hadoop::Io::IntWritable
   end
+end
 
-  job 'uniques' do
-    input input_path
-    output "#{output_path}/uniques"
+cc = Rubydoop::ConfigurationDefinition.new
+cc.job 'uniques' do
+  input cc.arguments[0]
+  output "#{cc.arguments[1]}/uniques"
 
-    mapper Uniques::Mapper
-    reducer Uniques::Reducer
+  mapper Uniques::Mapper
+  reducer Uniques::Reducer
 
-    partitioner Uniques::Partitioner
-    grouping_comparator Uniques::GroupingComparator
+  partitioner Uniques::Partitioner
+  grouping_comparator Uniques::GroupingComparator
 
-    map_output_value Hadoop::Io::Text
-    output_key Hadoop::Io::Text
-    output_value Hadoop::Io::IntWritable
-  end
+  map_output_value Hadoop::Io::Text
+  output_key Hadoop::Io::Text
+  output_value Hadoop::Io::IntWritable
 end

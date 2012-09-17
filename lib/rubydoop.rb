@@ -6,8 +6,9 @@ $LOAD_PATH << File.expand_path('..', __FILE__)
 require 'hadoop'
 
 
-# See {JobDefinition} for the job configuration DSL documentation, {Package}
-# for the packaging documentation, or the {file:README.md README} for a getting started guide.
+# See {Rubydoop.configure} for the job configuration DSL documentation, 
+# {Package} for the packaging documentation, or the {file:README.md README} 
+# for a getting started guide.
 module Rubydoop
   # @private
   def self.create_mapper(conf)

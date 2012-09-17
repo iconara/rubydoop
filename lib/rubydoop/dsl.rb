@@ -3,34 +3,8 @@
 module Rubydoop
   # Main entrypoint into the configuration DSL.
   #
-  # The tool runner will set the global variable `$rubydoop_context`
-  # to an object that contains references to the necessary Hadoop
-  # configuration.
-  #
-  # Within a configure block you can specify one or more jobs, see
-  # the examples in the {JobDefinition} documentation for more details.
-  def self.configure(&block)
-    if $rubydoop_context
-      configure_ctx = ConfigurationCreator.new($rubydoop_context)
-      configure_ctx.instance_exec(*$rubydoop_context.arguments, &block)
-    end
-  end
-
-  # @private
-  class ConfigurationCreator
-    def initialize(context)
-      @context = context
-    end
-
-    def job(name, &block)
-      job = @context.create_job(name)
-      job.instance_exec(&block)
-    end
-  end
-
-  # Job configuration DSL.
-  #
   # @example Configuring a job
+  #
   #   Rubydoop.configure do |*args|
   #     job 'word_count' do
   #       input args[0]
@@ -43,6 +17,59 @@ module Rubydoop
   #       output_value Hadoop::Io::IntWritable
   #     end
   #   end
+  #
+  # Within a configure block you can specify one or more jobs, the `job`
+  # blocks are run in the context of a {JobDefinition} instance, so look
+  # at that class for documentation about the available properties. The
+  # `configure` block is run within the context of a {ConfigurationDefinition}
+  # instance. The arguments to the `configure` block is the command line 
+  # arguments, minus those handled by Hadoop's `ToolRunner`.
+  #
+  # @yieldparam [Array<String>] *arguments The command line arguments
+  #
+  # @note The tool runner will set the global variable `$rubydoop_context`
+  #   to an object that contains references to the necessary Hadoop
+  #   configuration. Unless this global variable is set the configuration
+  #   block is not run (this is a feature, it means that the configuration
+  #   block doesn't run in mappers and reducers).
+  #
+  def self.configure(&block)
+    if $rubydoop_context
+      configure_ctx = ConfigurationDefinition.new($rubydoop_context)
+      configure_ctx.instance_exec(*$rubydoop_context.arguments, &block)
+    end
+  end
+
+  # Lower level API for configuring jobs.
+  #
+  # @example Configuring a job
+  #
+  #     cc = ConfigurationDefinition.new
+  #     cc.job 'word_count' do
+  #       # same DSL as shown in the documentation for Rubydoop.configure
+  #     end
+  #
+  class ConfigurationDefinition
+    def initialize(context=$rubydoop_context)
+      @context = context
+    end
+
+    def arguments
+      @context.arguments
+    end
+
+    def job(name, &block)
+      return nil unless @context
+      job = @context.create_job(name)
+      job.instance_exec(&block)
+      job
+    end
+  end
+
+  # Job configuration DSL.
+  #
+  # `Rubydoop.configure` blocks are run within the context of an instance of
+  # this class. These are the methods available in those blocks.
   #
   class JobDefinition
     # @private
