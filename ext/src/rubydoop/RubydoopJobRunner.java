@@ -17,6 +17,7 @@ import org.apache.hadoop.mapreduce.Job;
 
 import org.jruby.Ruby;
 import org.jruby.RubySymbol;
+import org.jruby.exceptions.RaiseException;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.javasupport.JavaUtil;
 
@@ -54,7 +55,16 @@ public class RubydoopJobRunner extends Configured implements Tool {
         IRubyObject[] contextArgs = JavaUtil.convertJavaArrayToRuby(runtime, new Object[] {getConf(), proxyClasses, rubyArguments});
         IRubyObject contextInstance = contextClass.callMethod(runtime.getCurrentContext(), "new", contextArgs);
         runtime.defineReadonlyVariable("$rubydoop_context", contextInstance);
-        runtime.evalScriptlet(String.format("require '%s'", jobSetupScript));
+
+        try {
+            runtime.evalScriptlet(String.format("require '%s'", jobSetupScript));
+        } catch (RaiseException e) {
+            if (e.getException().instance_of_p(runtime.getCurrentContext(), runtime.getLoadError()).isTrue()) {
+                throw new RubydoopRunnerException(String.format("Could not load job setup script \"%s\"", jobSetupScript), e);
+            } else {
+                throw e;
+            }
+        }
         
         List<Job> jobs = (List<Job>) contextInstance.callMethod(runtime.getCurrentContext(), "jobs");
 
