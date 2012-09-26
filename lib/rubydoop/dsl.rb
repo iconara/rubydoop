@@ -151,10 +151,15 @@ module Rubydoop
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html#setMapperClass(java.lang.Class) Hadoop's Job#setMapperClass
     #
     # @param [Class] cls The (Ruby) mapper class.
-    def mapper(cls)
-      @job.configuration.set(MAPPER_KEY, cls.name)
-      @job.set_mapper_class(@context.proxy_class(:mapper))
+    def mapper(cls=nil)
+      if cls
+        @job.configuration.set(MAPPER_KEY, cls.name)
+        @job.set_mapper_class(@context.proxy_class(:mapper))
+        @mapper = cls
+      end
+      @mapper
     end
+    alias_method :mapper=, :mapper
 
     # Sets the reducer class.
     #
@@ -172,10 +177,15 @@ module Rubydoop
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html#setReducerClass(java.lang.Class) Hadoop's Job#setReducerClass
     #
     # @param [Class] cls The (Ruby) reducer class.
-    def reducer(cls)
-      @job.configuration.set(REDUCER_KEY, cls.name)
-      @job.set_reducer_class(@context.proxy_class(:reducer))
+    def reducer(cls=nil)
+      if cls
+        @job.configuration.set(REDUCER_KEY, cls.name)
+        @job.set_reducer_class(@context.proxy_class(:reducer))
+        @reducer = cls
+      end
+      @reducer
     end
+    alias_method :reducer=, :reducer
 
     # Sets the combiner class.
     #
@@ -188,10 +198,15 @@ module Rubydoop
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html#setCombinerClass(java.lang.Class) Hadoop's Job#setCombinerClass
     #
     # @param [Class] cls The (Ruby) combiner class.
-    def combiner(cls)
-      @job.configuration.set(COMBINER_KEY, cls.name)
-      @job.set_combiner_class(@context.proxy_class(:combiner))
+    def combiner(cls=nil)
+      if cls
+        @job.configuration.set(COMBINER_KEY, cls.name)
+        @job.set_combiner_class(@context.proxy_class(:combiner))
+        @combiner = cls
+      end
+      @combiner
     end
+    alias_method :combiner=, :combiner
 
     # Sets a custom partitioner.
     #
@@ -205,10 +220,15 @@ module Rubydoop
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html#setPartitionerClass(java.lang.Class) Hadoop's Job#setPartitionerClass 
     #
     # @param [Class] cls The (Ruby) partitioner class.
-    def partitioner(cls)
-      @job.configuration.set(PARTITIONER_KEY, cls.name)
-      @job.set_partitioner_class(@context.proxy_class(:partitioner))
+    def partitioner(cls=nil)
+      if cls
+        @job.configuration.set(PARTITIONER_KEY, cls.name)
+        @job.set_partitioner_class(@context.proxy_class(:partitioner))
+        @partitioner = cls
+      end
+      @partitioner
     end
+    alias_method :partitioner=, :partitioner
 
     # Sets a custom grouping comparator.
     #
@@ -219,10 +239,15 @@ module Rubydoop
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html#setGroupingComparatorClass(java.lang.Class) Hadoop's Job#setGroupingComparatorClass
     #
     # @param [Class] cls The (Ruby) comparator class.
-    def grouping_comparator(cls)
-      @job.configuration.set(GROUPING_COMPARATOR_KEY, cls.name)
-      @job.set_grouping_comparator_class(@context.proxy_class(:grouping_comparator))
+    def grouping_comparator(cls=nil)
+      if cls
+        @job.configuration.set(GROUPING_COMPARATOR_KEY, cls.name)
+        @job.set_grouping_comparator_class(@context.proxy_class(:grouping_comparator))
+        @grouping_comparator = cls
+      end
+      @grouping_comparator
     end
+    alias_method :grouping_comparator=, :grouping_comparator
 
     # Sets a custom sort comparator.
     #
@@ -233,10 +258,15 @@ module Rubydoop
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html#setSortComparatorClass(java.lang.Class) Hadoop's Job#setSortComparatorClass
     #
     # @param [Class] cls The (Ruby) comparator class.
-    def sort_comparator(cls)
-      @job.configuration.set(SORT_COMPARATOR_KEY, cls.name)
-      @job.set_sort_comparator_class(@context.proxy_class(:sort_comparator))
+    def sort_comparator(cls=nil)
+      if cls
+        @job.configuration.set(SORT_COMPARATOR_KEY, cls.name)
+        @job.set_sort_comparator_class(@context.proxy_class(:sort_comparator))
+        @sort_comparator = cls
+      end
+      @sort_comparator
     end
+    alias_method :sort_comparator=, :sort_comparator
 
     # If you need to manipulate the Hadoop job in some that isn't covered by
     # this DSL, this is the method for you. It yields the `Job`, letting you
@@ -253,6 +283,13 @@ module Rubydoop
 
     def self.class_setter(dsl_name)
       define_method(dsl_name) do |cls|
+        if cls
+          @job.send("set_#{dsl_name}_class", cls.java_class)
+          instance_variable_set(:"@#{dsl_name}", cls)
+        end
+        instance_variable_get(:"@#{dsl_name}")
+      end
+      define_method("#{dsl_name}=") do |cls|
         @job.send("set_#{dsl_name}_class", cls.java_class)
       end
     end
