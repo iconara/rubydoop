@@ -33,11 +33,8 @@ module Rubydoop
   #   block is not run (this is a feature, it means that the configuration
   #   block doesn't run in mappers and reducers).
   #
-  def self.configure(&block)
-    if $rubydoop_context
-      configure_ctx = ConfigurationDefinition.new($rubydoop_context)
-      configure_ctx.instance_exec(*$rubydoop_context.arguments, &block)
-    end
+  def self.configure(impl=ConfigurationDefinition, &block)
+    impl.new($rubydoop_context, &block) if $rubydoop_context
   end
 
   # Lower level API for configuring jobs.
@@ -50,8 +47,9 @@ module Rubydoop
   #     end
   #
   class ConfigurationDefinition
-    def initialize(context=$rubydoop_context)
+    def initialize(context=$rubydoop_context, &block)
       @context = context
+      instance_exec(*arguments, &block) if @context && block_given?
     end
 
     def arguments
@@ -60,7 +58,7 @@ module Rubydoop
 
     def job(name, &block)
       return nil unless @context
-      job = @context.create_job(name)
+      job = JobDefinition.new(@context, @context.create_job(name))
       job.instance_exec(&block)
       job
     end
@@ -312,7 +310,7 @@ module Rubydoop
     def create_job(name)
       hadoop_job = Hadoop::Mapreduce::Job.new(@conf, name)
       @jobs << hadoop_job
-      JobDefinition.new(self, hadoop_job)
+      hadoop_job
     end
 
     def proxy_class(type)
