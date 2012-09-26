@@ -4,7 +4,7 @@ require 'word_count/mapper'
 require 'word_count/reducer'
 
 
-Rudoop.configure do |input_path, output_path|
+Rubydoop.configure do |input_path, output_path|
   job 'word_count' do
     input input_path
     output output_path
