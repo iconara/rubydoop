@@ -10,6 +10,10 @@ Many times you will need to mix Java and Ruby code to do what you want, if you w
 
 Rubydoop is not complete. The configuration DSL only provides the bare basics, but it should make it much easier to set up a Hadoop job compared to a vanilla Java Hadoop project.
 
+## Installation
+
+    $ gem install rubydoop
+
 ## Example
 
 _TL; DR: Just look at the word count example in the examples directory._
