@@ -5,6 +5,8 @@ import java.io.IOException;
 
 import org.apache.hadoop.mapreduce.Reducer;
 
+import static rubydoop.RubydoopCounters.*;
+
 
 public class ReducerProxy extends Reducer<Object, Object, Object, Object> {
   private InstanceContainer instance;
@@ -22,6 +24,7 @@ public class ReducerProxy extends Reducer<Object, Object, Object, Object> {
     super.setup(ctx);
     instance = new InstanceContainer(factoryMethodName);
     instance.setup(ctx);
+    ctx.getCounter(COUNTER_GROUP, RUNTIMES_CREATED).increment(1);
   }
 
   protected void cleanup(Context ctx) throws IOException, InterruptedException {

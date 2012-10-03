@@ -93,6 +93,10 @@ describe 'Packaging and running a project' do
       it 'runs the combiner' do
         log.should match(/Combine input records=[^0]/)
       end
+
+      it 'counts the number of JRuby runtimes created' do
+        log.should match(/JRuby runtimes created=2/)
+      end
     end
 
     context 'the uniques job' do
