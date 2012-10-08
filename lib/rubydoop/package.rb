@@ -31,9 +31,10 @@ module Rubydoop
     # @option options [String]        :jruby_jar_path   The path to a local copy of `jruby-complete.jar`, defaults to downloading and caching a version defined by `:jruby_version`
     def initialize(options={})
       @options = default_options.merge(options)
-      @options[:project_name] = File.basename(@options[:project_base_dir]) unless @options[:project_name]
-      @options[:build_dir] = File.join(@options[:project_base_dir], 'build') unless @options[:build_dir]
-      @options[:jruby_jar_path] = File.join(@options[:build_dir], "jruby-complete-#{@options[:jruby_version]}.jar") unless @options[:jruby_jar_path]
+      @options[:project_name] ||= File.basename(@options[:project_base_dir])
+      @options[:build_dir] ||= File.join(@options[:project_base_dir], 'build')
+      @options[:jruby_jar_path] ||= File.join(@options[:build_dir], "jruby-complete-#{@options[:jruby_version]}.jar")
+      @options[:jar_path] ||= File.join(@options[:build_dir], "#{@options[:project_name]}.jar")
     end
 
     # Create the JAR package, see {Package#initialize} for configuration options.
@@ -50,6 +51,14 @@ module Rubydoop
     # A shortcut for `Package.new(options).create!`.
     def self.create!(options={})
       new(options).create!
+    end
+
+    def respond_to?(name)
+      @options.key?(name) or super
+    end
+
+    def method_missing(name, *args)
+      @options[name] or super
     end
 
     private
@@ -77,13 +86,10 @@ module Rubydoop
       remote_maven_url = "http://central.maven.org/maven2/org/jruby/jruby-complete/#{@options[:jruby_version]}/jruby-complete-#{@options[:jruby_version]}.jar"
 
       if File.exists?(local_maven_path)
-        $stderr.puts("Using #{File.basename(local_maven_path)} from local Maven cache")
         @options[:jruby_jar_path] = local_maven_path
       elsif File.exists?(local_ivy_path)
-        $stderr.puts("Using #{File.basename(local_maven_path)} from local Ivy2 cache")
         @options[:jruby_jar_path] = local_ivy_path
       else
-        $stderr.puts("Downloading #{remote_maven_url} to #{@options[:jruby_jar_path]}")
         jruby_complete_bytes = open(remote_maven_url).read
         File.open(@options[:jruby_jar_path], 'wb') do |io|
           io.write(jruby_complete_bytes)
@@ -96,8 +102,8 @@ module Rubydoop
       options = @options
       bundled_gems = load_path
       lib_jars = [options[:jruby_jar_path], *options[:lib_jars]]
-      ant do
-        jar :destfile => "#{options[:build_dir]}/#{options[:project_name]}.jar" do
+      ant :output_level => 1 do
+        jar :destfile => options[:jar_path] do
           manifest { attribute :name => 'Main-Class', :value => options[:main_class] }
           zipfileset :src => "#{options[:rubydoop_base_dir]}/lib/rubydoop.jar"
           fileset :dir => "#{options[:rubydoop_base_dir]}/lib", :includes => '**/*.rb', :excludes => '*.jar'
