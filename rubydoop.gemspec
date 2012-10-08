@@ -8,7 +8,7 @@ require 'rubydoop/version'
 Gem::Specification.new do |s|
   s.name        = 'rubydoop'
   s.version     = Rubydoop::VERSION.dup
-  s.platform    = 'java'
+  s.platform    = Gem::Platform::RUBY
   s.authors     = ['Theo Hultberg']
   s.email       = ['theo@iconara.net']
   s.homepage    = 'http://github.com/iconara/rubydoop'
