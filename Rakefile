@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require 'ant'
+require 'rspec/core/rake_task'
 
 
 namespace :build do
@@ -38,8 +39,10 @@ end
 desc 'Build the lib/rubydoop.jar'
 task :build => 'build:jars'
 
+RSpec::Core::RakeTask.new(:spec)
+
 desc 'Tag & release the gem'
-task :release do
+task :release => %w[build:clean build spec] do
   $: << 'lib'
   require 'rubydoop/version'
 
