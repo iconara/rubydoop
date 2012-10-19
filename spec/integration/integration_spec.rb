@@ -9,19 +9,29 @@ module JavaJar
   include_package 'java.util.jar'
 end
 
+module JavaLang
+  include_package 'java.lang'
+end
+
 describe 'Packaging and running a project' do
+  def gemset(dir)
+    rvmrc = File.readlines("#{dir}/.rvmrc").first
+    rvmrc.scan(/(\S+@\S+)/).flatten.first
+  end
+
+  def isolated_run(dir, cmd)
+    Dir.chdir(dir) do
+      system("BUNDLE_GEMFILE='' rvm #{gemset(dir)} exec #{cmd}")
+    end
+  end
+
   let :test_project_dir do
     File.expand_path('../test_project', __FILE__)
   end
 
   before :all do
-    log_redirection = "2>&1 | tee #{test_project_dir}/data/log"
-    commands = [
-      "cd #{test_project_dir}",
-      "rake clean package",
-      "hadoop jar build/test_project.jar -conf conf/hadoop-local.xml test_project data/input data/output #{log_redirection}"
-    ]
-    system 'bash', '-cl', commands.join(' && ')
+    isolated_run(test_project_dir, './bin/rake clean package')
+    isolated_run(test_project_dir, "hadoop jar build/test_project.jar -conf conf/hadoop-local.xml test_project data/input data/output 2>&1 | tee data/log")
   end
 
   around do |example|
@@ -51,7 +61,8 @@ describe 'Packaging and running a project' do
     end
 
     it 'includes jruby-complete.jar' do
-      jar_entries.should include('lib/jruby-complete-1.6.7.jar')
+      jruby_version = gemset(test_project_dir).scan(/jruby-(.+)@/).flatten.first
+      jar_entries.should include("lib/jruby-complete-#{jruby_version}.jar")
     end
 
     it 'includes extra JAR dependencies' do
