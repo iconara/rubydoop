@@ -31,7 +31,6 @@ describe 'Packaging and running a project' do
 
   before :all do
     isolated_run(test_project_dir, './bin/rake clean package')
-    isolated_run(test_project_dir, "hadoop jar build/test_project.jar -conf conf/hadoop-local.xml test_project data/input data/output 2>&1 | tee data/log")
   end
 
   around do |example|
@@ -88,6 +87,10 @@ describe 'Packaging and running a project' do
   end
 
   context 'Running the project' do
+    before :all do
+      isolated_run(test_project_dir, "hadoop jar build/test_project.jar -conf conf/hadoop-local.xml test_project data/input data/output 2>&1 | tee data/log")
+    end
+
     let :log do
       File.read('data/log')
     end
