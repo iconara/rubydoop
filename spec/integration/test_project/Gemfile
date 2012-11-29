@@ -2,6 +2,7 @@ source :rubygems
 
 gem 'rubydoop', :path => '../../..'
 gem 'json'
+gem 'paint'
 
 group :development do
   gem 'rake'

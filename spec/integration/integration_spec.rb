@@ -61,8 +61,8 @@ describe 'Packaging and running a project' do
 
     context 'when paths collide' do
       it 'selects project files over gem files' do
-        file_io = jar.get_input_stream(jar.get_jar_entry('json/common.rb')).to_io
-        file_io.read.should include('# this overrides json/common.rb')
+        file_io = jar.get_input_stream(jar.get_jar_entry('paint/util.rb')).to_io
+        file_io.read.should include('# this overrides paint/util.rb')
       end
 
       it 'merges directories from the project and gems' do
