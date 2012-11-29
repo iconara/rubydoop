@@ -59,6 +59,17 @@ describe 'Packaging and running a project' do
       jar_entries.should include('json/')
     end
 
+    context 'when paths collide' do
+      it 'selects project files over gem files' do
+        file_io = jar.get_input_stream(jar.get_jar_entry('json/common.rb')).to_io
+        file_io.read.should include('# this overrides json/common.rb')
+      end
+
+      it 'merges directories from the project and gems' do
+        jar_entries.should include('json/add/complex.rb')
+      end
+    end
+
     it 'includes jruby-complete.jar' do
       jruby_version = gemset(test_project_dir).scan(/jruby-(.+)@/).flatten.first
       jar_entries.should include("lib/jruby-complete-#{jruby_version}.jar")

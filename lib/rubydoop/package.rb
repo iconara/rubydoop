@@ -107,8 +107,8 @@ module Rubydoop
           manifest { attribute :name => 'Main-Class', :value => options[:main_class] }
           zipfileset :src => "#{options[:rubydoop_base_dir]}/lib/rubydoop.jar"
           fileset :dir => "#{options[:rubydoop_base_dir]}/lib", :includes => '**/*.rb', :excludes => '*.jar'
-          fileset :dir => "#{options[:project_base_dir]}/lib"
           bundled_gems.each { |path| fileset :dir => path }
+          fileset :dir => "#{options[:project_base_dir]}/lib"
           lib_jars.each { |extra_jar| zipfileset :dir => File.dirname(extra_jar), :includes => File.basename(extra_jar), :prefix => 'lib' }
         end
       end
