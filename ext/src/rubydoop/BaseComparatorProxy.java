@@ -37,7 +37,9 @@ public abstract class BaseComparatorProxy implements RawComparator<Object>, Conf
   @Override
   public void setConf(Configuration conf) {
     configuration = conf;
-    instance = new InstanceContainer(factoryMethodName);
+    if (instance == null) {
+      instance = new InstanceContainer(factoryMethodName);
+    }
     instance.setup(conf);
     compareRaw = instance.respondsTo("compare_raw");
     compareObj = instance.respondsTo("compare");

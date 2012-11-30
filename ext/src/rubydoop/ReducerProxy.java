@@ -22,9 +22,11 @@ public class ReducerProxy extends Reducer<Object, Object, Object, Object> {
 
   protected void setup(Context ctx) throws IOException, InterruptedException {
     super.setup(ctx);
-    instance = new InstanceContainer(factoryMethodName);
+    if (instance == null) {
+      instance = new InstanceContainer(factoryMethodName);
+      ctx.getCounter(COUNTER_GROUP, RUNTIMES_CREATED).increment(1);
+    }
     instance.setup(ctx);
-    ctx.getCounter(COUNTER_GROUP, RUNTIMES_CREATED).increment(1);
   }
 
   protected void cleanup(Context ctx) throws IOException, InterruptedException {

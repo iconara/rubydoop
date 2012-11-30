@@ -21,9 +21,11 @@ public class MapperProxy extends Mapper<Object, Object, Object, Object> {
 
   protected void setup(Context ctx) throws IOException, InterruptedException {
     super.setup(ctx);
-    instance = new InstanceContainer("create_mapper");
+    if (instance == null) {
+      instance = new InstanceContainer("create_mapper");
+      ctx.getCounter(COUNTER_GROUP, RUNTIMES_CREATED).increment(1);
+    }
     instance.setup(ctx);
-    ctx.getCounter(COUNTER_GROUP, RUNTIMES_CREATED).increment(1);
   }
 
   protected void cleanup(Context ctx) throws IOException, InterruptedException {

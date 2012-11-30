@@ -8,7 +8,6 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import org.jruby.RubyFixnum;
 
 
-
 public class PartitionerProxy extends Partitioner<Object, Object> implements Configurable {
   private Configuration configuration;
   private InstanceContainer instance;
@@ -26,7 +25,9 @@ public class PartitionerProxy extends Partitioner<Object, Object> implements Con
   @Override
   public void setConf(Configuration conf) {
     configuration = conf;
-    instance = new InstanceContainer("create_partitioner");
+    if (instance == null) {
+      instance = new InstanceContainer("create_partitioner");
+    }
     instance.setup(conf);
   }
 }
