@@ -26,6 +26,46 @@ module Rubydoop
       described_class.new(context, job)
     end
 
+    describe '#input' do
+      it 'should take a single path' do
+        job_definition.input('secret_rubydoop_path')
+        configuration.iterator.map(&:value).grep(/secret_rubydoop_path/).should_not be_empty
+      end
+
+      it 'should take an array of paths' do
+        job_definition.input(%w[secret_rubydoop_path second_secret_path])
+        configuration.iterator.map(&:value).grep(/secret_rubydoop_path,.*second_secret_path/).should_not be_empty
+      end
+
+      it 'should support a format class' do
+        job_definition.input('path', format: Hadoop::Mapreduce::Lib::Input::SequenceFileInputFormat)
+        configuration.get('mapreduce.inputformat.class').should == 'org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat'
+      end
+
+      it 'should default to text input format' do
+        job_definition.input('path')
+        configuration.get('mapreduce.inputformat.class').should == 'org.apache.hadoop.mapreduce.lib.input.TextInputFormat'
+      end
+    end
+
+    describe '#output' do
+      it 'should take a single path' do
+        job_definition.output('secret_rubydoop_output_path')
+        configuration.iterator.map(&:value).grep(/secret_rubydoop_output_path/).should_not be_empty
+      end
+
+      it 'should support a format class' do
+        job_definition.output('path', format: Hadoop::Mapreduce::Lib::Output::SequenceFileOutputFormat)
+        configuration.get('mapreduce.outputformat.class').should == 'org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat'
+      end
+
+      it 'should default to text output format' do
+        job_definition.output('path')
+        configuration.get('mapreduce.outputformat.class').should == 'org.apache.hadoop.mapreduce.lib.output.TextOutputFormat'
+      end
+    end
+
+
     describe '#set' do
       it 'sets a string property on the job\'s configuration' do
         job_definition.set('apa', 'bepa')
