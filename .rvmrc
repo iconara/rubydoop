@@ -1,1 +1,2 @@
+hadoop classpath | tr : "\n" | sed 's,/bin/..,,' > .classpath
 rvm --create use jruby-1.6.7@rubydoop
