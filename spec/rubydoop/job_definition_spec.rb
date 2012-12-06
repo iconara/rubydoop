@@ -46,6 +46,11 @@ module Rubydoop
         job_definition.input('path')
         configuration.get('mapreduce.inputformat.class').should == 'org.apache.hadoop.mapreduce.lib.input.TextInputFormat'
       end
+
+      it 'should resolve shorthand symbols to built-in input formats' do
+        job_definition.input('path', format: :sequence_file)
+        configuration.get('mapreduce.inputformat.class').should == 'org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat'
+      end
     end
 
     describe '#output' do
@@ -62,6 +67,11 @@ module Rubydoop
       it 'should default to text output format' do
         job_definition.output('path')
         configuration.get('mapreduce.outputformat.class').should == 'org.apache.hadoop.mapreduce.lib.output.TextOutputFormat'
+      end
+
+      it 'should resolve shorthand symbols to built-in output formats' do
+        job_definition.output('path', format: :sequence_file)
+        configuration.get('mapreduce.outputformat.class').should == 'org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat'
       end
     end
 
