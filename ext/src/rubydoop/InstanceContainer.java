@@ -14,6 +14,8 @@ import org.jruby.javasupport.JavaUtil;
 public class InstanceContainer {
     public static final String JOB_SETUP_SCRIPT_KEY = "rubydoop.job_setup_script";
 
+    private static Ruby globalRuntime;
+
     private String factoryMethodName;
     private Ruby runtime;
     private IRubyObject instance;
@@ -23,13 +25,15 @@ public class InstanceContainer {
     }
 
     public static Ruby createRuntime() {
-        RubyInstanceConfig config = new RubyInstanceConfig();
-        config.setCompatVersion(CompatVersion.RUBY1_9);
-        Ruby runtime = Ruby.newInstance(config);
-        // NOTE: this is a hack to work around JRUBY-6879, the load path contains both 1.9 and 1.8
-        runtime.evalScriptlet("$LOAD_PATH.reject! { |path| path.include?('site_ruby/1.8')}");
-        runtime.evalScriptlet("require 'rubydoop'");
-        return runtime;
+        if (globalRuntime == null) {
+            RubyInstanceConfig config = new RubyInstanceConfig();
+            config.setCompatVersion(CompatVersion.RUBY1_9);
+            globalRuntime = Ruby.newInstance(config);
+            // NOTE: this is a hack to work around JRUBY-6879, the load path contains both 1.9 and 1.8
+            globalRuntime.evalScriptlet("$LOAD_PATH.reject! { |path| path.include?('site_ruby/1.8')}");
+            globalRuntime.evalScriptlet("require 'rubydoop'");
+        }
+        return globalRuntime;
     }
 
     public void setup(JobContext ctx) {
