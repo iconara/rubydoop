@@ -2,6 +2,7 @@
 
 require 'rubydoop'
 require 'json'
+require 'openssl' # this just asserts that jruby-openssl was packaged correctly
 
 require 'word_count'
 require 'uniques'

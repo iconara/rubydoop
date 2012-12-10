@@ -5,6 +5,7 @@ require 'open-uri'
 require 'ant'
 require 'fileutils'
 require 'set'
+require 'tmpdir'
 
 
 module Rubydoop
@@ -98,6 +99,7 @@ module Rubydoop
     end
 
     def build_jar!
+      @tmpdir =  Dir.mktmpdir('rubydoop')
       # the ant block is instance_exec'ed so instance variables and methods are not in scope
       options = @options
       bundled_gems = load_path
@@ -112,11 +114,17 @@ module Rubydoop
           lib_jars.each { |extra_jar| zipfileset :dir => File.dirname(extra_jar), :includes => File.basename(extra_jar), :prefix => 'lib' }
         end
       end
+    ensure
+      FileUtils.rm_rf(@tmpdir)
     end
 
     def load_path
       Bundler.definition.specs_for(@options[:gem_groups]).flat_map do |spec|
-        if spec.full_name !~ /^(?:bundler|rubydoop)-\d+/
+        if spec.full_name =~ /^jruby-openssl-\d+/
+          Dir.chdir(@tmpdir) do
+            repackage_openssl(spec)
+          end
+        elsif spec.full_name !~ /^(?:bundler|rubydoop)-\d+/
           spec.require_paths.map do |rp| 
             "#{spec.full_gem_path}/#{rp}"
           end
@@ -124,6 +132,20 @@ module Rubydoop
           []
         end
       end
+    end
+
+    def repackage_openssl(spec)
+      FileUtils.cp_r(spec.full_gem_path, 'jruby-openssl')
+      FileUtils.mv('jruby-openssl/lib/shared', 'jruby-openssl/new_lib')
+      FileUtils.mv('jruby-openssl/lib/1.8', 'jruby-openssl/new_lib/openssl/1.8')
+      FileUtils.mv('jruby-openssl/lib/1.9', 'jruby-openssl/new_lib/openssl/1.9')
+      main_file = File.read('jruby-openssl/new_lib/openssl.rb')
+      main_file.gsub!('../1.8', 'openssl/1.8')
+      main_file.gsub!('../1.9', 'openssl/1.9')
+      File.open('jruby-openssl/new_lib/openssl.rb', 'w') { |io| io.write(main_file) }
+      FileUtils.rm_r('jruby-openssl/lib')
+      FileUtils.mv('jruby-openssl/new_lib', 'jruby-openssl/lib')
+      ["#{@tmpdir}/jruby-openssl/lib"]
     end
   end
 end

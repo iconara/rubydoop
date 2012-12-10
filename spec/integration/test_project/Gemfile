@@ -3,7 +3,9 @@ source :rubygems
 gem 'rubydoop', :path => '../../..'
 gem 'json'
 gem 'paint'
+gem 'jruby-openssl'
 
 group :development do
   gem 'rake'
+  gem 'pry'
 end

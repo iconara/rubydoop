@@ -95,6 +95,14 @@ describe 'Packaging and running a project' do
     it 'has the RubydoopJobRunner as its main class' do
       jar.manifest.main_attributes.get(Java::JavaUtilJar::Attributes::Name::MAIN_CLASS).should == 'rubydoop.RubydoopJobRunner'
     end
+
+    context 'with gems that require special handling' do
+      it 'includes the modified layout of the jruby-openssl gem' do
+        jar_entries.should include('openssl.rb')
+        jar_entries.should include('openssl/ssl.rb')
+        jar_entries.should include('openssl/1.9/openssl/digest.rb')
+      end
+    end
   end
 
   context 'Running the project' do
