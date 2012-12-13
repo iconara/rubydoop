@@ -1,4 +1,4 @@
 module Rubydoop
   # @private
-  VERSION = '1.1.0.pre1'
+  VERSION = '1.1.0.pre2'
 end
