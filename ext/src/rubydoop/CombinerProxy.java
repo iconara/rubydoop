@@ -2,5 +2,7 @@ package rubydoop;
 
 
 public class CombinerProxy extends ReducerProxy {
-  protected String factoryMethodName = "create_combiner";
+  public CombinerProxy() {
+    super("create_combiner");
+  }
 }

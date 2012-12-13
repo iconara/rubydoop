@@ -14,7 +14,7 @@ Rubydoop.configure do |input_path, output_path|
     output "#{output_path}/word_count"
 
     mapper WordCount::Mapper
-    combiner WordCount::Reducer
+    combiner WordCount::AliceDoublingCombiner
     reducer WordCount::Reducer
 
     output_key Hadoop::Io::Text

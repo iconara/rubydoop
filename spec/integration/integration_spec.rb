@@ -125,6 +125,7 @@ describe 'Packaging and running a project' do
 
       it 'runs the combiner' do
         log.should match(/Combine input records=[^0]/)
+        words['alice'].should == 385 * 2
       end
 
       it 'counts the number of JRuby runtimes created' do

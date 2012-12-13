@@ -29,7 +29,23 @@ module WordCount
         sum + value.get
       end
       @output_value.set(total_sum)
-      context.write(key, @output_value);
+      context.write(key, @output_value)
+    end
+  end
+
+  class AliceDoublingCombiner < Reducer
+    def reduce(key, values, context)
+      if key.to_s == 'alice'
+        total_sum = values.reduce(0) do |sum, value|
+          sum + value.get
+        end
+        @output_value.set(total_sum * 2)
+        context.write(key, @output_value)
+      else
+        values.each do |value|
+          context.write(key, value)
+        end
+      end
     end
   end
 end

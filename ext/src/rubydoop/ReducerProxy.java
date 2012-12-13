@@ -10,7 +10,15 @@ import static rubydoop.RubydoopCounters.*;
 
 public class ReducerProxy extends Reducer<Object, Object, Object, Object> {
   private InstanceContainer instance;
-  protected String factoryMethodName = "create_reducer";
+  protected String factoryMethodName;
+
+  public ReducerProxy() {
+    this("create_reducer");
+  }
+
+  public ReducerProxy(String factoryMethodName) {
+    this.factoryMethodName = factoryMethodName;
+  }
 
   public void reduce(Object key, Iterable<Object> values, Context ctx) throws IOException, InterruptedException {
     instance.callMethod("reduce", key, values, ctx);
