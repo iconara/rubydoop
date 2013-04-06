@@ -12,8 +12,6 @@ import org.jruby.RubyFixnum;
 public abstract class BaseComparatorProxy implements RawComparator<Object>, Configurable {
   private Configuration configuration;
   private InstanceContainer instance;
-  private boolean compareRaw;
-  private boolean compareObj;
 
   protected String factoryMethodName;
 
@@ -41,7 +39,5 @@ public abstract class BaseComparatorProxy implements RawComparator<Object>, Conf
       instance = new InstanceContainer(factoryMethodName);
     }
     instance.setup(conf);
-    compareRaw = instance.respondsTo("compare_raw");
-    compareObj = instance.respondsTo("compare");
   }
 }
