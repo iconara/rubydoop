@@ -5,8 +5,6 @@ import java.io.IOException;
 
 import org.apache.hadoop.mapreduce.Mapper;
 
-import static rubydoop.RubydoopCounters.*;
-
 
 public class MapperProxy extends Mapper<Object, Object, Object, Object> {
   private InstanceContainer instance;
@@ -23,7 +21,6 @@ public class MapperProxy extends Mapper<Object, Object, Object, Object> {
     super.setup(ctx);
     if (instance == null) {
       instance = new InstanceContainer("create_mapper");
-      ctx.getCounter(COUNTER_GROUP, RUNTIMES_CREATED).increment(1);
     }
     instance.setup(ctx);
   }
