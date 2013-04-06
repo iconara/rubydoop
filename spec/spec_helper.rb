@@ -6,5 +6,6 @@ IO.foreach(File.expand_path('../../.classpath', __FILE__)) { |path| $CLASSPATH <
 
 require 'pry'
 require 'rubydoop'
+require 'rubydoop/version'
 require 'rubydoop/package'
 

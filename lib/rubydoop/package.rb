@@ -99,18 +99,24 @@ module Rubydoop
     end
 
     def build_jar!
-      @tmpdir =  Dir.mktmpdir('rubydoop')
-      # the ant block is instance_exec'ed so instance variables and methods are not in scope
+      @tmpdir = Dir.mktmpdir('rubydoop')
+      jar_dir = File.join(@tmpdir, 'jar')
+
+      create_load_path_setup_script(jar_dir, bundled_gems)
+
+      # NOTE: the ant block is instance_exec'ed so instance variables and methods will not be scope
       options = @options
-      bundled_gems = load_path
-      lib_jars = [options[:jruby_jar_path], *options[:lib_jars]]
+      bundled_gems = gem_specs
+      lib_jars = [@options[:jruby_jar_path], *@options[:lib_jars]]
+
       ant :output_level => 1 do
         jar :destfile => options[:jar_path] do
           manifest { attribute :name => 'Main-Class', :value => options[:main_class] }
+          zipfileset :dir => "#{options[:project_base_dir]}/lib"
           zipfileset :src => "#{options[:rubydoop_base_dir]}/lib/rubydoop.jar"
-          fileset :dir => "#{options[:rubydoop_base_dir]}/lib", :includes => '**/*.rb', :excludes => '*.jar'
-          bundled_gems.each { |path| fileset :dir => path }
-          fileset :dir => "#{options[:project_base_dir]}/lib"
+          zipfileset :dir => jar_dir
+          zipfileset :dir => "#{options[:rubydoop_base_dir]}/lib", :includes => '**/*.rb', :excludes => '*.jar', :prefix => "gems/rubydoop-#{Rubydoop::VERSION}/lib"
+          bundled_gems.each { |gem_spec| zipfileset :dir => gem_spec.full_gem_path, :prefix => "gems/#{File.basename(gem_spec.full_gem_path)}" }
           lib_jars.each { |extra_jar| zipfileset :dir => File.dirname(extra_jar), :includes => File.basename(extra_jar), :prefix => 'lib' }
         end
       end
@@ -118,34 +124,23 @@ module Rubydoop
       FileUtils.rm_rf(@tmpdir)
     end
 
-    def load_path
-      Bundler.definition.specs_for(@options[:gem_groups]).flat_map do |spec|
-        if spec.full_name =~ /^jruby-openssl-\d+/
-          Dir.chdir(@tmpdir) do
-            repackage_openssl(spec)
-          end
-        elsif spec.full_name !~ /^(?:bundler|rubydoop)-\d+/
-          spec.require_paths.map do |rp| 
-            "#{spec.full_gem_path}/#{rp}"
-          end
-        else
-          []
-        end
-      end
+    def gem_specs
+      gem_specs = Bundler.definition.specs_for(@options[:gem_groups])
+      gem_specs.select { |spec| spec.full_name !~ /^(?:bundler|rubydoop)/ }
     end
 
-    def repackage_openssl(spec)
-      FileUtils.cp_r(spec.full_gem_path, 'jruby-openssl')
-      FileUtils.mv('jruby-openssl/lib/shared', 'jruby-openssl/new_lib')
-      FileUtils.mv('jruby-openssl/lib/1.8', 'jruby-openssl/new_lib/openssl/1.8')
-      FileUtils.mv('jruby-openssl/lib/1.9', 'jruby-openssl/new_lib/openssl/1.9')
-      main_file = File.read('jruby-openssl/new_lib/openssl.rb')
-      main_file.gsub!('../1.8', 'openssl/1.8')
-      main_file.gsub!('../1.9', 'openssl/1.9')
-      File.open('jruby-openssl/new_lib/openssl.rb', 'w') { |io| io.write(main_file) }
-      FileUtils.rm_r('jruby-openssl/lib')
-      FileUtils.mv('jruby-openssl/new_lib', 'jruby-openssl/lib')
-      ["#{@tmpdir}/jruby-openssl/lib"]
+    def create_load_path_setup_script(base_path, gem_specs)
+      path = File.join(base_path, 'setup_load_path.rb')
+      FileUtils.mkdir_p(File.dirname(path))
+      File.open(path, 'w') do |io|
+        io.puts("$LOAD_PATH << 'gems/rubydoop-#{Rubydoop::VERSION}/lib'")
+        gem_specs.each do |gem_spec|
+          gem_spec.require_paths.each do |path|
+            relative_path = File.join(File.basename(gem_spec.full_gem_path), path)
+            io.puts("$LOAD_PATH << 'gems/#{relative_path}'")
+          end
+        end
+      end
     end
   end
 end

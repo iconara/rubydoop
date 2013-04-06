@@ -55,19 +55,21 @@ describe 'Packaging and running a project' do
     end
 
     it 'includes gem dependencies' do
-      jar_entries.should include('json.rb')
-      jar_entries.should include('json/')
+      jar_entries.should include('gems/json-1.7.5-java/lib/json.rb')
+      jar_entries.should include('gems/json-1.7.5-java/')
     end
 
-    context 'when paths collide' do
-      it 'selects project files over gem files' do
-        file_io = jar.get_input_stream(jar.get_jar_entry('paint/util.rb')).to_io
-        file_io.read.should include('# this overrides paint/util.rb')
-      end
+    it 'includes the Rubydoop gem' do
+      jar_entries.should include("gems/rubydoop-#{Rubydoop::VERSION}/lib/rubydoop.rb")
+      jar_entries.should include("gems/rubydoop-#{Rubydoop::VERSION}/lib/rubydoop/dsl.rb")
+    end
 
-      it 'merges directories from the project and gems' do
-        jar_entries.should include('json/add/complex.rb')
-      end
+    it 'includes a script that sets up a load path that includes all bundled gems' do
+      file_io = jar.get_input_stream(jar.get_jar_entry('setup_load_path.rb')).to_io
+      script_contents = file_io.read
+      script_contents.should include(%($LOAD_PATH << 'gems/rubydoop-#{Rubydoop::VERSION}/lib'))
+      script_contents.should include(%($LOAD_PATH << 'gems/json-1.7.5-java/lib'))
+      script_contents.should include(%($LOAD_PATH << 'gems/jruby-openssl-0.7.6.1/lib/shared'))
     end
 
     it 'includes jruby-complete.jar' do
@@ -87,21 +89,8 @@ describe 'Packaging and running a project' do
       jar_entries.should include('rubydoop/InstanceContainer.class')
     end
 
-    it 'includes the Rubydoop configuration scripts' do
-      jar_entries.should include('rubydoop.rb')
-      jar_entries.should include('rubydoop/dsl.rb')
-    end
-
     it 'has the RubydoopJobRunner as its main class' do
       jar.manifest.main_attributes.get(Java::JavaUtilJar::Attributes::Name::MAIN_CLASS).should == 'rubydoop.RubydoopJobRunner'
-    end
-
-    context 'with gems that require special handling' do
-      it 'includes the modified layout of the jruby-openssl gem' do
-        jar_entries.should include('openssl.rb')
-        jar_entries.should include('openssl/ssl.rb')
-        jar_entries.should include('openssl/1.9/openssl/digest.rb')
-      end
     end
   end
 
