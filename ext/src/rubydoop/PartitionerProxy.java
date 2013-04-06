@@ -13,8 +13,8 @@ public class PartitionerProxy extends Partitioner<Object, Object> implements Con
   private InstanceContainer instance;
 
   public int getPartition(Object key, Object value, int numPartitions) {
-    RubyFixnum result = (RubyFixnum) instance.callMethod("partition", key, value, numPartitions);
-    return (int) result.getLongValue();
+    long result = (Long) instance.callMethod("partition", key, value, numPartitions);
+    return (int) result;
   }
 
   @Override

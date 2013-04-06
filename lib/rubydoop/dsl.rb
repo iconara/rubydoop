@@ -348,7 +348,7 @@ module Rubydoop
     def initialize(conf, proxy_classes, arguments)
       @conf = conf
       @proxy_classes = proxy_classes
-      @arguments = arguments
+      @arguments = arguments.to_a
       @jobs = []
     end
 
@@ -359,7 +359,7 @@ module Rubydoop
     end
 
     def proxy_class(type)
-      @proxy_classes[type]
+      @proxy_classes[type.to_s]
     end
   end
 end

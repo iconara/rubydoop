@@ -15,11 +15,9 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.hadoop.mapreduce.Job;
 
-import org.jruby.Ruby;
-import org.jruby.RubySymbol;
-import org.jruby.exceptions.RaiseException;
-import org.jruby.runtime.builtin.IRubyObject;
-import org.jruby.javasupport.JavaUtil;
+import org.jruby.embed.ScriptingContainer;
+import org.jruby.embed.PathType;
+import org.jruby.embed.EvalFailedException;
 
 
 public class RubydoopJobRunner extends Configured implements Tool {
@@ -36,44 +34,38 @@ public class RubydoopJobRunner extends Configured implements Tool {
         return 0;
     }
 
-    private Map<RubySymbol, Class<?>> proxyClasses(final RubySymbol.SymbolTable symbols) {
-        return new HashMap<RubySymbol, Class<?>>() {{
-            put(symbols.getSymbol("mapper"), MapperProxy.class);
-            put(symbols.getSymbol("reducer"), ReducerProxy.class);
-            put(symbols.getSymbol("combiner"), CombinerProxy.class);
-            put(symbols.getSymbol("partitioner"), PartitionerProxy.class);
-            put(symbols.getSymbol("grouping_comparator"), GroupingComparatorProxy.class);
-            put(symbols.getSymbol("sort_comparator"), SortComparatorProxy.class);
+    private Map<String, Class<?>> proxyClasses() {
+        return new HashMap<String, Class<?>>() {{
+            put("mapper", MapperProxy.class);
+            put("reducer", ReducerProxy.class);
+            put("combiner", CombinerProxy.class);
+            put("partitioner", PartitionerProxy.class);
+            put("grouping_comparator", GroupingComparatorProxy.class);
+            put("sort_comparator", SortComparatorProxy.class);
         }};
     }
 
     private List<Job> configureJobs(String jobSetupScript, String[] arguments) throws Exception {
-        Ruby runtime = InstanceContainer.createRuntime();
-        IRubyObject contextClass = runtime.evalScriptlet("Rubydoop::Context");
-        IRubyObject rubyArguments = JavaUtil.convertJavaArrayToRubyWithNesting(runtime.getCurrentContext(), arguments);
-        Map<RubySymbol, Class<?>> proxyClasses = proxyClasses(runtime.getSymbolTable());
-        IRubyObject[] contextArgs = JavaUtil.convertJavaArrayToRuby(runtime, new Object[] {getConf(), proxyClasses, rubyArguments});
-        IRubyObject contextInstance = contextClass.callMethod(runtime.getCurrentContext(), "new", contextArgs);
-        runtime.defineReadonlyVariable("$rubydoop_context", contextInstance);
+        ScriptingContainer runtime = InstanceContainer.getRuntime();
+        runtime.put("conf", getConf());
+        runtime.put("proxy_classes", proxyClasses());
+        runtime.put("args", arguments);
+        runtime.runScriptlet("$rubydoop_context = Rubydoop::Context.new(conf, proxy_classes, args)");
 
         try {
-            runtime.evalScriptlet(String.format("require '%s'", jobSetupScript));
-        } catch (RaiseException e) {
-            if (e.getException().instance_of_p(runtime.getCurrentContext(), runtime.getLoadError()).isTrue()) {
-                throw new RubydoopRunnerException(String.format("Could not load job setup script \"%s\"", jobSetupScript), e);
-            } else {
-                throw e;
-            }
+            runtime.put("job_setup_script", jobSetupScript);
+            runtime.runScriptlet("require(job_setup_script)");
+        } catch (EvalFailedException e) {
+            String message = String.format("Could not load job setup script (\"%s\"): \"%s\"", jobSetupScript, e.getMessage());
+            throw new RubydoopRunnerException(message, e);
         }
         
-        List<Job> jobs = (List<Job>) contextInstance.callMethod(runtime.getCurrentContext(), "jobs");
+        List<Job> jobs = (List<Job>) runtime.runScriptlet("$rubydoop_context.jobs");
 
         for (Job job : jobs) {
             job.getConfiguration().set(InstanceContainer.JOB_SETUP_SCRIPT_KEY, jobSetupScript);
             job.setJarByClass(getClass());
         }
-
-        runtime.tearDown();
 
         return jobs;
     }

@@ -4,34 +4,33 @@ package rubydoop;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.conf.Configuration;
 
-import org.jruby.Ruby;
-import org.jruby.RubyInstanceConfig;
 import org.jruby.CompatVersion;
-import org.jruby.runtime.builtin.IRubyObject;
-import org.jruby.javasupport.JavaUtil;
+import org.jruby.embed.ScriptingContainer;
+import org.jruby.embed.LocalVariableBehavior;
+import org.jruby.embed.PathType;
+import org.jruby.embed.EvalFailedException;
+
 
 
 public class InstanceContainer {
     public static final String JOB_SETUP_SCRIPT_KEY = "rubydoop.job_setup_script";
 
-    private static Ruby globalRuntime;
+    private static ScriptingContainer globalRuntime;
 
     private String factoryMethodName;
-    private Ruby runtime;
-    private IRubyObject instance;
+    private Object instance;
 
     public InstanceContainer(String factoryMethodName) {
         this.factoryMethodName = factoryMethodName;
     }
 
-    public static Ruby createRuntime() {
+    public static ScriptingContainer getRuntime() {
         if (globalRuntime == null) {
-            RubyInstanceConfig config = new RubyInstanceConfig();
-            config.setCompatVersion(CompatVersion.RUBY1_9);
-            globalRuntime = Ruby.newInstance(config);
+            globalRuntime = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
+            globalRuntime.setCompatVersion(CompatVersion.RUBY1_9);
             // NOTE: this is a hack to work around JRUBY-6879, the load path contains both 1.9 and 1.8
-            globalRuntime.evalScriptlet("$LOAD_PATH.reject! { |path| path.include?('site_ruby/1.8')}");
-            globalRuntime.evalScriptlet("require 'rubydoop'");
+            globalRuntime.runScriptlet("$LOAD_PATH.reject! { |path| path.include?('site_ruby/1.8')}");
+            globalRuntime.runScriptlet("require 'rubydoop'");
         }
         return globalRuntime;
     }
@@ -45,13 +44,13 @@ public class InstanceContainer {
 
     public void setup(Configuration conf) {
         String jobConfigScript = conf.get(JOB_SETUP_SCRIPT_KEY);
-        runtime = createRuntime();
-        runtime.evalScriptlet(String.format("require '%s'", jobConfigScript));
-        IRubyObject rubydoopModule = runtime.evalScriptlet("Rubydoop");
-        if (rubydoopModule.respondsTo(factoryMethodName)) {
-            instance = rubydoopModule.callMethod(runtime.getCurrentContext(), factoryMethodName, JavaUtil.convertJavaToRuby(runtime, conf));
-        } else {
-            throw new RubydoopConfigurationException(String.format("Cannot create instance, no such factory method: \"%s\"", factoryMethodName));
+        try {
+            getRuntime().runScriptlet(PathType.CLASSPATH, jobConfigScript);
+            getRuntime().put("factory_method_name", factoryMethodName);
+            getRuntime().put("conf", conf);
+            instance = getRuntime().runScriptlet("Rubydoop.send(factory_method_name, conf)");
+        } catch (EvalFailedException e) {
+            throw new RubydoopConfigurationException(String.format("Cannot create instance: \"%s\"", e.getMessage()), e);
         }
     }
     
@@ -63,10 +62,6 @@ public class InstanceContainer {
     }
 
     public void cleanup(Configuration conf) {
-        if (runtime != null) {
-            runtime.tearDown();
-        }
-        runtime = null;
         instance = null;
     }
 
@@ -75,14 +70,14 @@ public class InstanceContainer {
     }
 
     public boolean respondsTo(String methodName) {
-        return isDefined() && instance.respondsTo(methodName);
+        return isDefined() && getRuntime().callMethod(instance, "respond_to?", methodName, Boolean.class);
     }
 
-    public IRubyObject callMethod(String name) {
-        return instance.callMethod(runtime.getCurrentContext(), name);
+    public Object callMethod(String name) {
+        return getRuntime().callMethod(instance, name);
     }
 
-    public IRubyObject callMethod(String name, Object... args) {
-        return instance.callMethod(runtime.getCurrentContext(), name, JavaUtil.convertJavaArrayToRuby(runtime, args));
+    public Object callMethod(String name, Object... args) {
+        return getRuntime().callMethod(instance, name, args);
     }
 }
