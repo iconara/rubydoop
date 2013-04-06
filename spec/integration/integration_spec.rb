@@ -127,10 +127,6 @@ describe 'Packaging and running a project' do
         log.should match(/Combine input records=[^0]/)
         words['alice'].should == 385 * 2
       end
-
-      it 'counts the number of JRuby runtimes created' do
-        log.should match(/JRuby runtimes created=2/)
-      end
     end
 
     context 'the uniques job' do
