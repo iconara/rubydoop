@@ -46,10 +46,10 @@ public class InstanceContainer {
     public void setup(Configuration conf) {
         String jobConfigScript = conf.get(JOB_SETUP_SCRIPT_KEY);
         try {
-            getRuntime().runScriptlet(PathType.CLASSPATH, jobConfigScript);
+            getRuntime().put("job_config_path", jobConfigScript);
             getRuntime().put("factory_method_name", factoryMethodName);
             getRuntime().put("conf", conf);
-            instance = getRuntime().runScriptlet("Rubydoop.send(factory_method_name, conf)");
+            instance = getRuntime().runScriptlet("require(job_config_path); Rubydoop.send(factory_method_name, conf)");
         } catch (EvalFailedException e) {
             throw new RubydoopConfigurationException(String.format("Cannot create instance: \"%s\"", e.getMessage()), e);
         }
