@@ -6,6 +6,7 @@ require 'ant'
 require 'fileutils'
 require 'set'
 require 'tmpdir'
+require 'rubydoop/version'
 
 
 module Rubydoop
