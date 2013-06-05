@@ -10,7 +10,11 @@ module Rubydoop
     let :job do
       config = Configuration.new
       config.set 'mapred.job.tracker', 'local'
-      config.set 'fs.default.name', 'file:///'
+      if Configuration.respond_to?(:deprecated?) && Configuration.deprecated?('fs.default.name')
+        config.set 'fs.defaultFS', 'file:///'
+      else
+        config.set 'fs.default.name', 'file:///'
+      end
       Hadoop::Mapreduce::Job.new(config)
     end
 
