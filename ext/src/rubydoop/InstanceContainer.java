@@ -1,7 +1,6 @@
 package rubydoop;
 
 
-import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.conf.Configuration;
 
 import org.jruby.CompatVersion;
@@ -36,13 +35,6 @@ public class InstanceContainer {
         return globalRuntime;
     }
 
-    public void setup(JobContext ctx) {
-        setup(ctx.getConfiguration());
-        if (respondsTo("setup")) {
-            callMethod("setup", ctx);
-        }
-    }
-
     public void setup(Configuration conf) {
         String jobConfigScript = conf.get(JOB_SETUP_SCRIPT_KEY);
         try {
@@ -53,13 +45,6 @@ public class InstanceContainer {
         } catch (EvalFailedException e) {
             throw new RubydoopConfigurationException(String.format("Cannot create instance: \"%s\"", e.getMessage()), e);
         }
-    }
-    
-    public void cleanup(JobContext ctx) {
-        if (respondsTo("cleanup")) {
-            callMethod("cleanup", ctx);
-        }
-        cleanup(ctx.getConfiguration());
     }
 
     public void cleanup(Configuration conf) {
@@ -80,5 +65,9 @@ public class InstanceContainer {
 
     public Object callMethod(String name, Object... args) {
         return getRuntime().callMethod(instance, name, args);
+    }
+
+    public Object maybeCallMethod(String name, Object... args) {
+        return respondsTo(name) ? callMethod(name, args) : null;
     }
 }

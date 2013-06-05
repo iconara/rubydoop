@@ -22,11 +22,13 @@ public class MapperProxy extends Mapper<Object, Object, Object, Object> {
     if (instance == null) {
       instance = new InstanceContainer("create_mapper");
     }
-    instance.setup(ctx);
+    instance.setup(ctx.getConfiguration());
+    instance.maybeCallMethod("setup", ctx);
   }
 
   protected void cleanup(Context ctx) throws IOException, InterruptedException {
     super.cleanup(ctx);
-    instance.cleanup(ctx);
+    instance.maybeCallMethod("cleanup", ctx);
+    instance.cleanup(ctx.getConfiguration());
   }
 }
