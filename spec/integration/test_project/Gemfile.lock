@@ -1,7 +1,7 @@
 PATH
   remote: ../../..
   specs:
-    rubydoop (1.1.0.pre6)
+    rubydoop (1.1.0.pre7)
 
 GEM
   remote: http://rubygems.org/
