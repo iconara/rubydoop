@@ -31,11 +31,13 @@ public class ReducerProxy extends Reducer<Object, Object, Object, Object> {
     if (instance == null) {
       instance = new InstanceContainer(factoryMethodName);
     }
-    instance.setup(ctx);
+    instance.setup(ctx.getConfiguration());
+    instance.maybeCallMethod("setup", ctx);
   }
 
   protected void cleanup(Context ctx) throws IOException, InterruptedException {
     super.cleanup(ctx);
-    instance.cleanup(ctx);
+    instance.cleanup(ctx.getConfiguration());
+    instance.maybeCallMethod("cleanup", ctx);
   }
 }
