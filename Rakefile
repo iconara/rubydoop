@@ -2,7 +2,7 @@
 
 require 'ant'
 
-namespace :dist do
+namespace :build do
   source_dir = 'ext/src'
   build_dir = 'ext/build'
   ruby_dir = 'lib'
@@ -37,7 +37,7 @@ namespace :dist do
 end
 
 desc 'Build the lib/rubydoop.jar'
-task :dist => 'dist:jars'
+task :build => 'build:jars'
 
 namespace :setup do
   task :hadoop do
@@ -86,8 +86,13 @@ RSpec::Core::RakeTask.new(:spec) do |r|
   r.rspec_opts = '--tty'
 end
 
-task :spec => :dist
+task :spec => :build
 
 require 'bundler'
 
-Bundler::GemHelper.install_tasks
+namespace :gem do
+  Bundler::GemHelper.install_tasks
+end
+
+desc 'Release a new gem version'
+task :release => [:spec, 'gem:release']
