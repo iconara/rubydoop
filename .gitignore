@@ -4,4 +4,4 @@
 /pkg
 /doc
 /.yardoc
-/spec/hadoop_setup.rb
+/.classpath

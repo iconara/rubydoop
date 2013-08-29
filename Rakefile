@@ -66,14 +66,13 @@ namespace :setup do
   end
 
   task :classpath do
-    File.open('spec/hadoop_setup.rb', 'w') do |io|
+    File.open('.classpath', 'w') do |io|
       hadoop_home = File.expand_path(Dir["tmp/hadoop*"].first)
       %x(#{hadoop_home}/bin/hadoop classpath).chomp.split(':').each do |pattern|
         Dir[pattern].each do |path|
-          io.puts("$CLASSPATH << '#{File.expand_path(path)}'")
+          io.puts(path)
         end
       end
-      io.puts("HADOOP_HOME = '#{hadoop_home}'")
     end
   end
 end
