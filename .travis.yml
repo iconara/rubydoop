@@ -1,0 +1,10 @@
+language: ruby
+rvm:
+  - jruby-1.6.8
+  - jruby-1.7.4
+  - jruby-head
+env:
+  - HADOOP_RELEASE=hadoop-1.0.3/hadoop-1.0.3-bin
+  - HADOOP_RELEASE=hadoop-1.2.1/hadoop-1.2.1-bin
+  - HADOOP_RELEASE=hadoop-2.1.0-beta/hadoop-2.1.0-beta
+script: rake setup spec
