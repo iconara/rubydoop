@@ -4,7 +4,7 @@ PATH
     rubydoop (1.1.0)
 
 GEM
-  remote: http://rubygems.org/
+  remote: https://rubygems.org/
   specs:
     bouncy-castle-java (1.5.0146.1)
     coderay (1.0.8)
