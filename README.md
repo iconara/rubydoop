@@ -18,19 +18,21 @@ _TL; DR: Just look at the word count example in the examples directory._
 
 Here's how you would implement word count with Rubydoop. First, let's sketch an outline:
 
-    module WordCount
-      class Mapper
-        def map(key, value, context)
-          # ...
-        end
-      end
-
-      class Reducer
-        def reduce(key, value, context)
-          # ...
-        end
-      end
+```ruby
+module WordCount
+  class Mapper
+    def map(key, value, context)
+      # ...
     end
+  end
+
+  class Reducer
+    def reduce(key, value, context)
+      # ...
+    end
+  end
+end
+```
 
 Mappers and reducers don't have to inherit from any classes or mix in any modules, they only need to implement methods called `map` or `reduce` that takes three arguments: a key, a value (or values iterator in the case of reducers) and a context. You probably recognize these from Hadoop, and in fact Rubydoop mappers and reducers will be run exactly as a Hadoop mappers and reducers, Rubydoop only mediates between the Java side and the Ruby side. This also means that the `key` and `value` arguments are Hadoop writables and the `context` argument is the (mapper or reducer) context passed in by Hadoop. Hadoop has two map/reduce APIs, the old `org.apache.hadoop.mapred` package and the new `org.apache.hadoop.mapreduce`, Rubydoop uses the latter.
 
@@ -38,52 +40,58 @@ Mappers and reducers don't have to inherit from any classes or mix in any module
 
 Let's fill in the mapper implementation, as with all word count examples we ignore the input key since it's just the byte offset in the input file. This is a simplistic implementation that just splits on whitespace, removes all non-word characters and downcases. It outputs a one as the value. Rubydoop also aliases the most often used Hadoop classes, like the writables, and makes them easily accessible in Ruby.
 
-    module WordCount
-      class Mapper
-        def map(key, value, context)
-          value.to_s.split.each do |word|
-            word.gsub!(/\W/, '')
-            word.downcase!
-            unless word.empty?
-              context.write(Hadoop::Io::Text.new(word), Hadoop::Io::IntWritable.new(1))
-            end
-          end
+```ruby
+module WordCount
+  class Mapper
+    def map(key, value, context)
+      value.to_s.split.each do |word|
+        word.gsub!(/\W/, '')
+        word.downcase!
+        unless word.empty?
+          context.write(Hadoop::Io::Text.new(word), Hadoop::Io::IntWritable.new(1))
         end
       end
     end
+  end
+end
+```
 
 ### The reducer
 
 The reducer implementation is equaly straight forward: we iterate over the values, adding up all the numbers, and output the input key and the sum.
 
-    module WordCount
-      class Reducer
-        def reduce(key, values, context)
-          sum = 0
-          values.each { |value| sum += value.get }
-          context.write(key, Hadoop::Io::IntWritable.new(sum))
-        end
-      end
+```ruby
+module WordCount
+  class Reducer
+    def reduce(key, values, context)
+      sum = 0
+      values.each { |value| sum += value.get }
+      context.write(key, Hadoop::Io::IntWritable.new(sum))
     end
+  end
+end
+```
 
 ### The job config
 
 Ok, so let's wire this together. To do that we need to tell Rubydoop about our job. If you saved the mapper and reducer implementation in a file called `word_count.rb` open another file and call it `word_count_job.rb`. In the new file add the following Rubydoop job config:
 
-    require 'word_count'
+```ruby
+require 'word_count'
 
-    Rubydoop.configure do |input_path, output_path|
-      job 'word_count' do
-        input input_path
-        output output_path
+Rubydoop.configure do |input_path, output_path|
+  job 'word_count' do
+    input input_path
+    output output_path
 
-        mapper WordCount::Mapper
-        reducer WordCount::Reducer
+    mapper WordCount::Mapper
+    reducer WordCount::Reducer
 
-        output_key Hadoop::Io::Text
-        output_value Hadoop::Io::IntWritable
-      end
-    end
+    output_key Hadoop::Io::Text
+    output_value Hadoop::Io::IntWritable
+  end
+end
+```
 
 That was a lot in one go. The first thing that happens is that we `require` the file containing the mapper and reducer implementations. That's really important, otherwise Rubydoop won't be able to find them later. 
 
@@ -104,11 +112,13 @@ The job configuration DSL will be expanded with more features in the future.
 
 The final step before running the job is packing it up for Hadoop. Rubydoop provides the `Rubydoop::Package` class to do this, and a suitable place to put the necessary code is in a Rakefile:
 
-    require 'rubydoop/package'
+```ruby
+require 'rubydoop/package'
 
-    task :package do
-      Rubydoop::Package.new.create!
-    end
+task :package do
+  Rubydoop::Package.new.create!
+end
+```
 
 Unless you hate using defaults that's all you need to do (most of the defaults can be changed, so don't worry). When you run `rake package` it will create a JAR file in a directory called `build`. The JAR will be named after the directory that the Rakefile is in (it assumes this is your project directory), and it will include the full JRuby runtime (this will be downloaded and cached the first time you run the task), all code in the `lib` directory and all dependencies in the default (top-level) group of your `Gemfile`. It will not include Bundler, so don't do `require 'bundler/setup'` or similar in your code. All gems will be on the load path, so `require`'s will work as expected.
 
