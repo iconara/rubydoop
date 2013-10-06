@@ -148,7 +148,7 @@ Running the RSpec tests furthermore requires a one-time setup
 
 ## Copyright
 
-Copyright 2012 Theo Hultberg
+Copyright 2012-2013 Theo Hultberg and contributors
 
 _Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License You may obtain a copy of the License at_
 
