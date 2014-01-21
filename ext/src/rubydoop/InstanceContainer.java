@@ -23,7 +23,7 @@ public class InstanceContainer {
         this.factoryMethodName = factoryMethodName;
     }
 
-    public static ScriptingContainer getRuntime() {
+    public static synchronized ScriptingContainer getRuntime() {
         if (globalRuntime == null) {
             globalRuntime = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
             globalRuntime.setCompatVersion(CompatVersion.RUBY1_9);
@@ -36,14 +36,16 @@ public class InstanceContainer {
     }
 
     public void setup(Configuration conf) {
-        String jobConfigScript = conf.get(JOB_SETUP_SCRIPT_KEY);
-        try {
-            getRuntime().put("job_config_path", jobConfigScript);
-            getRuntime().put("factory_method_name", factoryMethodName);
-            getRuntime().put("conf", conf);
-            instance = getRuntime().runScriptlet("require(job_config_path); Rubydoop.send(factory_method_name, conf)");
-        } catch (EvalFailedException e) {
-            throw new RubydoopConfigurationException(String.format("Cannot create instance: \"%s\"", e.getMessage()), e);
+        synchronized (globalRuntime) {
+            String jobConfigScript = conf.get(JOB_SETUP_SCRIPT_KEY);
+            try {
+                getRuntime().put("job_config_path", jobConfigScript);
+                getRuntime().put("factory_method_name", factoryMethodName);
+                getRuntime().put("conf", conf);
+                instance = getRuntime().runScriptlet("require(job_config_path); Rubydoop.send(factory_method_name, conf)");
+            } catch (EvalFailedException e) {
+                throw new RubydoopConfigurationException(String.format("Cannot create instance: \"%s\"", e.getMessage()), e);
+            }
         }
     }
 
