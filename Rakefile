@@ -56,8 +56,9 @@ namespace :setup do
 
   task :test_project do
     Dir.chdir('spec/integration/test_project') do
-      command = (<<-END).lines.map(&:strip).join(' && ') 
-      rvm gemset create rubydoop-test_project
+      command = (<<-END).lines.map(&:strip).join(' && ')
+      rvm $RUBY_VERSION do rvm gemset create rubydoop-test_project
+      rvm $RUBY_VERSION@rubydoop-test_project do gem install bundler
       rvm $RUBY_VERSION@rubydoop-test_project do bundle install
       END
       puts command
