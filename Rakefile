@@ -67,7 +67,7 @@ namespace :setup do
 
   task :classpath do
     File.open('.classpath', 'w') do |io|
-      hadoop_home = File.expand_path(Dir["tmp/hadoop*"].first)
+      hadoop_home = File.expand_path(File.dirname(Dir["tmp/hadoop*/bin"].first))
       %x(#{hadoop_home}/bin/hadoop classpath).chomp.split(':').each do |pattern|
         Dir[pattern].each do |path|
           io.puts(path)
