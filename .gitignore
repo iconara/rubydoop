@@ -5,3 +5,4 @@
 /doc
 /.yardoc
 /.classpath
+/spec/integration/test_project/Gemfile.lock
