@@ -25,7 +25,7 @@ describe 'Packaging and running a project' do
   end
 
   before :all do
-    isolated_run(test_project_dir, 'rake clean package')
+    isolated_run(test_project_dir, 'bundle exec rake clean package')
   end
 
   around do |example|
