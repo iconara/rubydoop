@@ -50,8 +50,7 @@ describe 'Packaging and running a project' do
     end
 
     it 'includes gem dependencies' do
-      jar_entries.should include('gems/json-1.7.5-java/lib/json.rb')
-      jar_entries.should include('gems/json-1.7.5-java/')
+      jar_entries.grep(%r'^gems/paint-[^/]+/lib').should_not be_empty
     end
 
     it 'includes the Rubydoop gem' do
@@ -63,8 +62,7 @@ describe 'Packaging and running a project' do
       file_io = jar.get_input_stream(jar.get_jar_entry('setup_load_path.rb')).to_io
       script_contents = file_io.read
       script_contents.should include(%($LOAD_PATH << 'gems/rubydoop-#{Rubydoop::VERSION}/lib'))
-      script_contents.should include(%($LOAD_PATH << 'gems/json-1.7.5-java/lib'))
-      script_contents.should include(%($LOAD_PATH << 'gems/jruby-openssl-0.7.6.1/lib/shared'))
+      script_contents.should match(%r"'gems/paint-[^/]+/lib'")
     end
 
     it 'includes jruby-complete.jar' do
