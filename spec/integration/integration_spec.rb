@@ -53,6 +53,18 @@ describe 'Packaging and running a project' do
       jar_entries.grep(%r'^gems/paint-[^/]+/lib').should_not be_empty
     end
 
+    if JRUBY_VERSION =~ /^1\.(?:6|7\.[0-4]\.)/
+      it 'includes gems that are built into future jruby releases' do
+        jar_entries.grep(%r'^gems/json-[^/]+/lib').should_not be_empty
+        jar_entries.grep(%r'^gems/jruby-openssl-[^/]+/lib').should_not be_empty
+      end
+    else
+      it 'ignores default gems' do
+        jar_entries.grep(%r'^gems/json-[^/]+/lib').should be_empty
+        jar_entries.grep(%r'^gems/jruby-openssl-[^/]+/lib').should be_empty
+      end
+    end
+
     it 'includes the Rubydoop gem' do
       jar_entries.should include("gems/rubydoop-#{Rubydoop::VERSION}/lib/rubydoop.rb")
       jar_entries.should include("gems/rubydoop-#{Rubydoop::VERSION}/lib/rubydoop/dsl.rb")
@@ -63,6 +75,10 @@ describe 'Packaging and running a project' do
       script_contents = file_io.read
       script_contents.should include(%($LOAD_PATH << 'gems/rubydoop-#{Rubydoop::VERSION}/lib'))
       script_contents.should match(%r"'gems/paint-[^/]+/lib'")
+      if JRUBY_VERSION =~ /^1\.(?:6|7\.[0-4]\.)/
+        script_contents.should match(%r"'gems/json-[^/]+/lib'")
+        script_contents.should match(%r"'gems/jruby-openssl-[^/]+/lib'")
+      end
     end
 
     it 'includes jruby-complete.jar' do
