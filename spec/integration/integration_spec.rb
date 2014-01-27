@@ -25,7 +25,7 @@ describe 'Packaging and running a project' do
   end
 
   before :all do
-    isolated_run(test_project_dir, 'rake clean package')
+    isolated_run(test_project_dir, 'bundle exec rake clean package')
   end
 
   around do |example|
@@ -68,8 +68,7 @@ describe 'Packaging and running a project' do
     end
 
     it 'includes jruby-complete.jar' do
-      jruby_version = ENV['RUBY_VERSION'].scan(/^jruby-(.+)$/).flatten.first
-      jar_entries.should include("lib/jruby-complete-#{jruby_version}.jar")
+      jar_entries.should include("lib/jruby-complete-#{JRUBY_VERSION}.jar")
     end
 
     it 'includes extra JAR dependencies' do
