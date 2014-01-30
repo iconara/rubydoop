@@ -58,7 +58,7 @@ namespace :setup do
       rm -f Gemfile.lock
       rvm $RUBY_VERSION do rvm gemset create rubydoop-test_project
       rvm $RUBY_VERSION@rubydoop-test_project do gem install bundler
-      rvm $RUBY_VERSION@rubydoop-test_project do bundle install
+      rvm $RUBY_VERSION@rubydoop-test_project do bundle install --retry 3
       END
       puts command
       Bundler.clean_system(command)
