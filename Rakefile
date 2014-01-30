@@ -25,9 +25,7 @@ namespace :build do
   end
 
   task :jars => :compile do
-    ant.jar :destfile => 'lib/rubydoop.jar', :basedir => build_dir do
-      fileset :dir => build_dir, :includes => '**/*.class'
-    end
+    ant.jar :destfile => 'lib/rubydoop.jar', :basedir => build_dir, :includes => '**/*.class'
   end
 
   task :clean do
