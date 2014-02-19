@@ -7,6 +7,14 @@ module WordCount
       @one = Hadoop::Io::IntWritable.new(1)
     end
 
+    def setup(ctx)
+      puts "mapper setup was run"
+    end
+
+    def cleanup(ctx)
+      puts "mapper cleanup was run"
+    end
+
     def map(key, value, context)
       value.to_s.split.each do |word|
         word.downcase!
@@ -22,6 +30,14 @@ module WordCount
   class Reducer
     def initialize
       @output_value = Hadoop::Io::IntWritable.new
+    end
+
+    def setup(ctx)
+      puts "reducer setup was run"
+    end
+
+    def cleanup(ctx)
+      puts "reducer cleanup was run"
     end
 
     def reduce(key, values, context)
@@ -46,6 +62,14 @@ module WordCount
           context.write(key, value)
         end
       end
+    end
+
+    def setup(ctx)
+      puts "combiner setup was run"
+    end
+
+    def cleanup(ctx)
+      puts "combiner cleanup was run"
     end
   end
 end
