@@ -37,7 +37,7 @@ public class ReducerProxy extends Reducer<Object, Object, Object, Object> {
 
   protected void cleanup(Context ctx) throws IOException, InterruptedException {
     super.cleanup(ctx);
-    instance.cleanup(ctx.getConfiguration());
     instance.maybeCallMethod("cleanup", ctx);
+    instance.cleanup(ctx.getConfiguration());
   }
 }

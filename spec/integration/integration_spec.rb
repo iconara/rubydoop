@@ -124,6 +124,16 @@ describe 'Packaging and running a project' do
         log.should match(/Combine input records=[^0]/)
         words['alice'].should == 385 * 2
       end
+
+      %w(mapper reducer combiner).each do |type|
+        it "runs the #{type} setup method" do
+          log.should match(/#{type.upcase}_SETUP_COUNT=1$/)
+        end
+
+        it "runs the #{type} cleanup method" do
+          log.should match(/#{type.upcase}_CLEANUP_COUNT=1$/)
+        end
+      end
     end
 
     context 'the uniques job' do
