@@ -127,11 +127,11 @@ describe 'Packaging and running a project' do
 
       %w(mapper reducer combiner).each do |type|
         it "runs the #{type} setup method" do
-          log.should match(/#{type} setup was run/)
+          log.should match(/#{type.upcase}_SETUP_COUNT=1$/)
         end
 
         it "runs the #{type} cleanup method" do
-          log.should match(/#{type} cleanup was run/)
+          log.should match(/#{type.upcase}_CLEANUP_COUNT=1$/)
         end
       end
     end

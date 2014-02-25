@@ -8,11 +8,11 @@ module WordCount
     end
 
     def setup(ctx)
-      puts "mapper setup was run"
+      ctx.get_counter('Setup and Cleanup', 'MAPPER_SETUP_COUNT').increment(1)
     end
 
     def cleanup(ctx)
-      puts "mapper cleanup was run"
+      ctx.get_counter('Setup and Cleanup', 'MAPPER_CLEANUP_COUNT').increment(1)
     end
 
     def map(key, value, context)
@@ -33,11 +33,11 @@ module WordCount
     end
 
     def setup(ctx)
-      puts "reducer setup was run"
+      ctx.get_counter('Setup and Cleanup', 'REDUCER_SETUP_COUNT').increment(1)
     end
 
     def cleanup(ctx)
-      puts "reducer cleanup was run"
+      ctx.get_counter('Setup and Cleanup', 'REDUCER_CLEANUP_COUNT').increment(1)
     end
 
     def reduce(key, values, context)
@@ -65,11 +65,11 @@ module WordCount
     end
 
     def setup(ctx)
-      puts "combiner setup was run"
+      ctx.get_counter('Setup and Cleanup', 'COMBINER_SETUP_COUNT').increment(1)
     end
 
     def cleanup(ctx)
-      puts "combiner cleanup was run"
+      ctx.get_counter('Setup and Cleanup', 'COMBINER_CLEANUP_COUNT').increment(1)
     end
   end
 end
