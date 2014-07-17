@@ -1,6 +1,54 @@
 # encoding: utf-8
 
+require 'zlib'
+
 module WordCount
+  class InputFormat
+    def splits(context)
+      fs = Hadoop::Fs::FileSystem.get_local(context.configuration)
+      context.configuration.get('word_count.input_format.input').split(',').flat_map do |path|
+        Dir[File.join(path, '**', '*.gz')]
+      end.map do |path|
+        stat = File.stat(path)
+        Hadoop::Mapreduce::Lib::Input::FileSplit.new(Hadoop::Fs::Path.new(path), 0, stat.size, Java::JavaLang::String[0].new)
+      end
+    end
+
+    def create_record_reader(split, context)
+      RecordReader.new(split, context)
+    end
+
+    def self.set_input_paths(job, paths)
+      job.configuration.set('word_count.input_format.input', paths)
+    end
+  end
+
+  class RecordReader
+    attr_reader :current_key, :current_value
+
+    def initialize(split, context)
+      @stream = Zlib::GzipReader.new(File.open(split.path.to_s))
+      @current_key = @current_value = nil
+      @size = split.length.to_f
+    end
+
+    def next_key_value
+      @current_key = @stream.pos
+      @current_value = @stream.readline
+      true
+    rescue EOFError
+      false
+    end
+
+    def progress
+      @stream.pos / @size
+    end
+
+    def close
+      @stream.close
+    end
+  end
+
   class Mapper
     def initialize
       @text = Hadoop::Io::Text.new
