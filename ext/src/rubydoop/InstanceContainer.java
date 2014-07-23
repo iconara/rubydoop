@@ -6,9 +6,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.jruby.CompatVersion;
 import org.jruby.embed.ScriptingContainer;
 import org.jruby.embed.LocalVariableBehavior;
-import org.jruby.embed.PathType;
 import org.jruby.embed.EvalFailedException;
-
 
 
 public class InstanceContainer {
@@ -16,11 +14,12 @@ public class InstanceContainer {
 
     private static ScriptingContainer globalRuntime;
 
-    private String factoryMethodName;
-    private Object instance;
+    private final ScriptingContainer runtime;
+    private final Object instance;
 
-    public InstanceContainer(String factoryMethodName) {
-        this.factoryMethodName = factoryMethodName;
+    public InstanceContainer(ScriptingContainer runtime, Object instance) {
+        this.runtime = runtime;
+        this.instance = instance;
     }
 
     public static synchronized ScriptingContainer getRuntime() {
@@ -34,37 +33,48 @@ public class InstanceContainer {
         return globalRuntime;
     }
 
-    public void setup(Configuration conf) {
-        String jobConfigScript = conf.get(JOB_SETUP_SCRIPT_KEY);
+    public static InstanceContainer createInstance(Configuration conf, String rubyClassProperty) {
         ScriptingContainer runtime = getRuntime();
+        Object rubyClass = lookupClassInternal(runtime, conf, rubyClassProperty);
+        return new InstanceContainer(runtime, runtime.callMethod(rubyClass, "new"));
+    }
+
+    public static InstanceContainer lookupClass(Configuration conf, String rubyClassProperty) {
+        ScriptingContainer runtime = getRuntime();
+        Object rubyClass = lookupClassInternal(runtime, conf, rubyClassProperty);
+        return new InstanceContainer(runtime, rubyClass);
+    }
+
+    private static Object lookupClassInternal(ScriptingContainer runtime, Configuration conf, String rubyClassProperty) {
+        String jobConfigScript = conf.get(JOB_SETUP_SCRIPT_KEY);
+        String rubyClassName = conf.get(rubyClassProperty);
         try {
-            Object kernel = runtime.get("Kernel");
-            Object rubydoop = runtime.get("Rubydoop");
-            runtime.callMethod(kernel, "require", jobConfigScript);
-            instance = runtime.callMethod(rubydoop, factoryMethodName, conf);
+            runtime.callMethod(runtime.get("Kernel"), "require", jobConfigScript);
+            Object rubyClass = runtime.get("Object");
+            for (String name : rubyClassName.split("::")) {
+              rubyClass = runtime.callMethod(rubyClass, "const_get", name);
+            }
+            return rubyClass;
         } catch (EvalFailedException e) {
-            throw new RubydoopConfigurationException(String.format("Cannot create instance: \"%s\"", e.getMessage()), e);
+            throw new RubydoopConfigurationException(String.format("Cannot load class %s: \"%s\"", rubyClassName, e.getMessage()), e);
         }
     }
 
-    public void cleanup(Configuration conf) {
-        instance = null;
-    }
 
     public boolean isDefined() {
         return instance != null;
     }
 
     public boolean respondsTo(String methodName) {
-        return isDefined() && getRuntime().callMethod(instance, "respond_to?", methodName, Boolean.class);
+        return isDefined() && runtime.callMethod(instance, "respond_to?", methodName, Boolean.class);
     }
 
     public Object callMethod(String name) {
-        return getRuntime().callMethod(instance, name);
+        return runtime.callMethod(instance, name);
     }
 
     public Object callMethod(String name, Object... args) {
-        return getRuntime().callMethod(instance, name, args);
+        return runtime.callMethod(instance, name, args);
     }
 
     public Object maybeCallMethod(String name, Object... args) {

@@ -161,8 +161,8 @@ module Rubydoop
     # @param [Class] cls The (Ruby) mapper class.
     def mapper(cls=nil)
       if cls
-        @job.configuration.set(MAPPER_KEY, cls.name)
-        @job.set_mapper_class(@context.proxy_class(:mapper))
+        @job.configuration.set(Rubydoop::MapperProxy::RUBY_CLASS_KEY, cls.name)
+        @job.set_mapper_class(Rubydoop::MapperProxy)
         @mapper = cls
       end
       @mapper
@@ -187,8 +187,8 @@ module Rubydoop
     # @param [Class] cls The (Ruby) reducer class.
     def reducer(cls=nil)
       if cls
-        @job.configuration.set(REDUCER_KEY, cls.name)
-        @job.set_reducer_class(@context.proxy_class(:reducer))
+        @job.configuration.set(Rubydoop::ReducerProxy::RUBY_CLASS_KEY, cls.name)
+        @job.set_reducer_class(Rubydoop::ReducerProxy)
         @reducer = cls
       end
       @reducer
@@ -208,8 +208,8 @@ module Rubydoop
     # @param [Class] cls The (Ruby) combiner class.
     def combiner(cls=nil)
       if cls
-        @job.configuration.set(COMBINER_KEY, cls.name)
-        @job.set_combiner_class(@context.proxy_class(:combiner))
+        @job.configuration.set(Rubydoop::CombinerProxy::RUBY_CLASS_KEY, cls.name)
+        @job.set_combiner_class(Rubydoop::CombinerProxy)
         @combiner = cls
       end
       @combiner
@@ -230,8 +230,8 @@ module Rubydoop
     # @param [Class] cls The (Ruby) partitioner class.
     def partitioner(cls=nil)
       if cls
-        @job.configuration.set(PARTITIONER_KEY, cls.name)
-        @job.set_partitioner_class(@context.proxy_class(:partitioner))
+        @job.configuration.set(Rubydoop::PartitionerProxy::RUBY_CLASS_KEY, cls.name)
+        @job.set_partitioner_class(Rubydoop::PartitionerProxy)
         @partitioner = cls
       end
       @partitioner
@@ -249,8 +249,8 @@ module Rubydoop
     # @param [Class] cls The (Ruby) comparator class.
     def grouping_comparator(cls=nil)
       if cls
-        @job.configuration.set(GROUPING_COMPARATOR_KEY, cls.name)
-        @job.set_grouping_comparator_class(@context.proxy_class(:grouping_comparator))
+        @job.configuration.set(Rubydoop::GroupingComparatorProxy::RUBY_CLASS_KEY, cls.name)
+        @job.set_grouping_comparator_class(Rubydoop::GroupingComparatorProxy)
         @grouping_comparator = cls
       end
       @grouping_comparator
@@ -268,8 +268,8 @@ module Rubydoop
     # @param [Class] cls The (Ruby) comparator class.
     def sort_comparator(cls=nil)
       if cls
-        @job.configuration.set(SORT_COMPARATOR_KEY, cls.name)
-        @job.set_sort_comparator_class(@context.proxy_class(:sort_comparator))
+        @job.configuration.set(Rubydoop::SortComparatorProxy::RUBY_CLASS_KEY, cls.name)
+        @job.set_sort_comparator_class(Rubydoop::SortComparatorProxy)
         @sort_comparator = cls
       end
       @sort_comparator
@@ -345,9 +345,8 @@ module Rubydoop
   class Context
     attr_reader :jobs, :arguments
 
-    def initialize(conf, proxy_classes, arguments)
+    def initialize(conf, arguments)
       @conf = conf
-      @proxy_classes = proxy_classes
       @arguments = arguments.to_a
       @jobs = []
     end
@@ -356,10 +355,6 @@ module Rubydoop
       hadoop_job = Hadoop::Mapreduce::Job.new(@conf, name)
       @jobs << hadoop_job
       hadoop_job
-    end
-
-    def proxy_class(type)
-      @proxy_classes[type.to_s]
     end
   end
 end
