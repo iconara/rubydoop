@@ -53,8 +53,7 @@ public class RubydoopJobRunner extends Configured implements Tool {
         runtime.runScriptlet("$rubydoop_context = Rubydoop::Context.new(conf, proxy_classes, args)");
 
         try {
-            runtime.put("job_setup_script", jobSetupScript);
-            runtime.runScriptlet("require(job_setup_script)");
+            runtime.callMethod(runtime.get("Kernel"), "require", jobSetupScript);
         } catch (EvalFailedException e) {
             String message = String.format("Could not load job setup script (\"%s\"): \"%s\"", jobSetupScript, e.getMessage());
             throw new RubydoopRunnerException(message, e);
