@@ -46,8 +46,8 @@ public class InstanceContainer {
     }
 
     private static Object lookupClassInternal(ScriptingContainer runtime, Configuration conf, String rubyClassProperty) {
-        String jobConfigScript = conf.get(JOB_SETUP_SCRIPT_KEY);
-        String rubyClassName = conf.get(rubyClassProperty);
+        String jobConfigScript = getRequired(conf, JOB_SETUP_SCRIPT_KEY);
+        String rubyClassName = getRequired(conf, rubyClassProperty);
         try {
             runtime.callMethod(runtime.get("Kernel"), "require", jobConfigScript);
             Object rubyClass = runtime.get("Object");
@@ -58,6 +58,14 @@ public class InstanceContainer {
         } catch (EvalFailedException e) {
             throw new RubydoopConfigurationException(String.format("Cannot load class %s: \"%s\"", rubyClassName, e.getMessage()), e);
         }
+    }
+
+    private static String getRequired(Configuration conf, String requiredKey) {
+        String result = conf.get(requiredKey);
+        if (result == null) {
+            throw new RubydoopConfigurationException("Missing required configuration key " + requiredKey);
+        }
+        return result;
     }
 
 
