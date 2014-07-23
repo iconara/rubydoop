@@ -27,8 +27,6 @@ public class InstanceContainer {
         if (globalRuntime == null) {
             globalRuntime = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
             globalRuntime.setCompatVersion(CompatVersion.RUBY1_9);
-            // NOTE: this is a hack to work around JRUBY-6879, the load path contains both 1.9 and 1.8
-            globalRuntime.runScriptlet("$LOAD_PATH.reject! { |path| path.include?('site_ruby/1.8')}");
             globalRuntime.runScriptlet("require 'setup_load_path'");
             globalRuntime.runScriptlet("require 'rubydoop'");
         }
