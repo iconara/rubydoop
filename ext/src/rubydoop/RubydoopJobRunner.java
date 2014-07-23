@@ -36,8 +36,10 @@ public class RubydoopJobRunner extends Configured implements Tool {
 
     private List<Job> configureJobs(String jobSetupScript, String[] arguments) throws Exception {
         ScriptingContainer runtime = InstanceContainer.getRuntime();
+        Configuration conf = getConf();
+        conf.set(InstanceContainer.JOB_SETUP_SCRIPT_KEY, jobSetupScript);
         Object contextClass = runtime.callMethod(runtime.get("Rubydoop"), "const_get", "Context");
-        Object context = runtime.callMethod(contextClass, "new", getConf(), arguments);
+        Object context = runtime.callMethod(contextClass, "new", conf, arguments);
         runtime.put("$rubydoop_context", context);
 
         try {
@@ -50,7 +52,6 @@ public class RubydoopJobRunner extends Configured implements Tool {
         List<Job> jobs = (List<Job>) runtime.callMethod(context, "jobs");
 
         for (Job job : jobs) {
-            job.getConfiguration().set(InstanceContainer.JOB_SETUP_SCRIPT_KEY, jobSetupScript);
             job.setJarByClass(getClass());
         }
 
