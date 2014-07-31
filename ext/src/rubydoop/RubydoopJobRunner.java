@@ -17,7 +17,7 @@ import org.apache.hadoop.mapreduce.Job;
 
 import org.jruby.embed.ScriptingContainer;
 import org.jruby.embed.PathType;
-import org.jruby.embed.EvalFailedException;
+import org.jruby.embed.InvokeFailedException;
 
 
 public class RubydoopJobRunner extends Configured implements Tool {
@@ -44,7 +44,7 @@ public class RubydoopJobRunner extends Configured implements Tool {
 
         try {
             runtime.callMethod(runtime.get("Kernel"), "require", jobSetupScript);
-        } catch (EvalFailedException e) {
+        } catch (InvokeFailedException e) {
             String message = String.format("Could not load job setup script (\"%s\"): \"%s\"", jobSetupScript, e.getMessage());
             throw new RubydoopRunnerException(message, e);
         }

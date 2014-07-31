@@ -6,7 +6,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.jruby.CompatVersion;
 import org.jruby.embed.ScriptingContainer;
 import org.jruby.embed.LocalVariableBehavior;
-import org.jruby.embed.EvalFailedException;
+import org.jruby.embed.InvokeFailedException;
 
 
 public class InstanceContainer {
@@ -55,7 +55,7 @@ public class InstanceContainer {
               rubyClass = runtime.callMethod(rubyClass, "const_get", name);
             }
             return rubyClass;
-        } catch (EvalFailedException e) {
+        } catch (InvokeFailedException e) {
             throw new RubydoopConfigurationException(String.format("Cannot load class %s: \"%s\"", rubyClassName, e.getMessage()), e);
         }
     }
