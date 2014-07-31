@@ -32,7 +32,7 @@ public class InstanceContainer {
         return globalRuntime;
     }
 
-    public static InstanceContainer getInstance(Object instance) {
+    public static InstanceContainer wrapInstance(Object instance) {
         return new InstanceContainer(getRuntime(), instance);
     }
 

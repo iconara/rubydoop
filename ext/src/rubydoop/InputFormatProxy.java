@@ -39,7 +39,7 @@ public class InputFormatProxy extends InputFormat<Object, Object> {
     if (recordReader instanceof RecordReader) {
       return (RecordReader<Object,Object>)recordReader;
     } else {
-      return new RecordReaderProxy(InstanceContainer.getInstance(recordReader));
+      return new RecordReaderProxy(InstanceContainer.wrapInstance(recordReader));
     }
   }
 
