@@ -26,9 +26,8 @@ public class InstanceContainer {
         if (globalRuntime == null) {
             globalRuntime = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
             globalRuntime.setCompatVersion(CompatVersion.RUBY1_9);
-            Object kernel = globalRuntime.get("Kernel");
-            globalRuntime.callMethod(kernel, "require", "setup_load_path");
-            globalRuntime.callMethod(kernel, "require", "rubydoop");
+            globalRuntime.callMethod(null, "require", "setup_load_path");
+            globalRuntime.callMethod(null, "require", "rubydoop");
         }
         return globalRuntime;
     }
@@ -49,8 +48,8 @@ public class InstanceContainer {
         String jobConfigScript = getRequired(conf, JOB_SETUP_SCRIPT_KEY);
         String rubyClassName = getRequired(conf, rubyClassProperty);
         try {
-            runtime.callMethod(runtime.get("Kernel"), "require", jobConfigScript);
-            Object rubyClass = runtime.get("Object");
+            runtime.callMethod(null, "require", jobConfigScript);
+            Object rubyClass = runtime.runScriptlet("Object");
             for (String name : rubyClassName.split("::")) {
               rubyClass = runtime.callMethod(rubyClass, "const_get", name);
             }

@@ -38,12 +38,12 @@ public class RubydoopJobRunner extends Configured implements Tool {
         ScriptingContainer runtime = InstanceContainer.getRuntime();
         Configuration conf = getConf();
         conf.set(InstanceContainer.JOB_SETUP_SCRIPT_KEY, jobSetupScript);
-        Object contextClass = runtime.callMethod(runtime.get("Rubydoop"), "const_get", "Context");
+        Object contextClass = runtime.runScriptlet("Rubydoop::Context");
         Object context = runtime.callMethod(contextClass, "new", conf, arguments);
         runtime.put("$rubydoop_context", context);
 
         try {
-            runtime.callMethod(runtime.get("Kernel"), "require", jobSetupScript);
+            runtime.callMethod(null, "require", jobSetupScript);
         } catch (InvokeFailedException e) {
             String message = String.format("Could not load job setup script (\"%s\"): \"%s\"", jobSetupScript, e.getMessage());
             throw new RubydoopRunnerException(message, e);
