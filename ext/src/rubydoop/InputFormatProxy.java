@@ -3,6 +3,12 @@ package rubydoop;
 
 import java.io.IOException;
 
+import java.lang.IllegalAccessException;
+import java.lang.NoSuchMethodException;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +27,17 @@ import org.jruby.embed.ScriptingContainer;
 
 public class InputFormatProxy extends InputFormat<Object, Object> {
   public static final String RUBY_CLASS_KEY = "rubydoop.input_format";
+  private static final Method GET_CONFIGURATION_METHOD = getGetConfigurationMethod();
+
+  private static Method getGetConfigurationMethod() {
+    try {
+      return Class.forName("org.apache.hadoop.mapreduce.JobContext").getDeclaredMethod("getConfiguration");
+    } catch (ClassNotFoundException e) {
+      return null;
+    } catch (NoSuchMethodException e) {
+      return null;
+    }
+  }
 
   private InstanceContainer instance;
 
@@ -43,8 +60,15 @@ public class InputFormatProxy extends InputFormat<Object, Object> {
     }
   }
 
-  private InstanceContainer createInstance(JobContext ctx) {
-    return InstanceContainer.createInstance(ctx.getConfiguration(), RUBY_CLASS_KEY);
+  private InstanceContainer createInstance(Object ctx) {
+    try {
+      Configuration configuration = (Configuration)GET_CONFIGURATION_METHOD.invoke(ctx);
+      return InstanceContainer.createInstance(configuration, RUBY_CLASS_KEY);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    } catch (InvocationTargetException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    }
   }
 
   private static class RecordReaderProxy extends RecordReader<Object, Object> {
