@@ -20,16 +20,14 @@ describe 'Packaging and running a project' do
     end
   end
 
-  let :test_project_dir do
-    File.expand_path('../test_project', __FILE__)
-  end
+  TEST_PROJECT_DIR = File.expand_path('../test_project', __FILE__)
 
   before :all do
-    isolated_run(test_project_dir, 'bundle exec rake clean package')
+    isolated_run(TEST_PROJECT_DIR, 'bundle exec rake clean package')
   end
 
   around do |example|
-    Dir.chdir(test_project_dir) do
+    Dir.chdir(TEST_PROJECT_DIR) do
       example.run
     end
   end
@@ -104,7 +102,7 @@ describe 'Packaging and running a project' do
 
   context 'Running the project' do
     before :all do
-      isolated_run(test_project_dir, "#{HADOOP_HOME}/bin/hadoop jar build/test_project.jar -conf conf/hadoop-local.xml test_project data/input data/output 2>&1 | tee data/log")
+      isolated_run(TEST_PROJECT_DIR, "#{HADOOP_HOME}/bin/hadoop jar build/test_project.jar -conf conf/hadoop-local.xml test_project data/input data/output 2>&1 | tee data/log")
     end
 
     let :log do
