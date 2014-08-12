@@ -116,7 +116,7 @@ RSpec.shared_context 'a rubydoop proxy' do
   end
 end
 
-RSpec.shared_examples 'a mapper' do
+RSpec.shared_context 'a mapper' do
   include_context 'a rubydoop proxy'
 
   let :proxy do
@@ -184,7 +184,7 @@ RSpec.shared_context 'a reducer or combiner' do
   end
 end
 
-RSpec.shared_examples 'a reducer' do
+RSpec.shared_context 'a reducer' do
   include_context 'a reducer or combiner'
 
   let :proxy do
@@ -196,7 +196,7 @@ RSpec.shared_examples 'a reducer' do
   end
 end
 
-RSpec.shared_examples 'a combiner' do
+RSpec.shared_context 'a combiner' do
   include_context 'a reducer or combiner'
 
   let :proxy do
@@ -209,7 +209,7 @@ RSpec.shared_examples 'a combiner' do
 end
 
 
-RSpec.shared_examples 'a partitioner' do
+RSpec.shared_context 'a partitioner' do
   include_context 'a rubydoop proxy'
 
   let :proxy do
@@ -222,7 +222,7 @@ RSpec.shared_examples 'a partitioner' do
   end
 end
 
-RSpec.shared_examples 'a sort comparator' do
+RSpec.shared_context 'a sort comparator' do
   include_context 'a rubydoop proxy'
 
   let :proxy do
@@ -235,7 +235,7 @@ RSpec.shared_examples 'a sort comparator' do
   end
 end
 
-RSpec.shared_examples 'a grouping comparator' do
+RSpec.shared_context 'a grouping comparator' do
   include_context 'a rubydoop proxy'
 
   let :proxy do
@@ -248,7 +248,7 @@ RSpec.shared_examples 'a grouping comparator' do
   end
 end
 
-RSpec.shared_examples 'an input format' do
+RSpec.shared_context 'an input format' do
   include_context 'a rubydoop proxy'
 
   let :proxy do
