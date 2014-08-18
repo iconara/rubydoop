@@ -20,12 +20,12 @@ describe 'proxies' do
 
   describe RubydoopExamples::SetupCleanupMapper do
     it_behaves_like 'a mapper' do
-      it 'writes a value pair from setup' do
+      it 'writes a value pair from #setup' do
         proxy.run(context)
         expect(outputs).to include(%w[setup value])
       end
 
-      it 'writes a value pair from cleanup' do
+      it 'writes a value pair from #cleanup' do
         proxy.run(context)
         expect(outputs).to include(%w[cleanup value])
       end
@@ -51,12 +51,12 @@ describe 'proxies' do
   describe RubydoopExamples::SetupCleanupReducer do
     ['a reducer', 'a combiner'].each do |role|
       it_behaves_like role do
-        it 'writes a value pair from setup' do
+        it 'writes a value pair from #setup' do
           proxy.run(context)
           expect(outputs).to include(%w[setup value])
         end
 
-        it 'writes a value pair from cleanup' do
+        it 'writes a value pair from #cleanup' do
           proxy.run(context)
           expect(outputs).to include(%w[cleanup value])
         end

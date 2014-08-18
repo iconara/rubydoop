@@ -85,7 +85,7 @@ RSpec.configure do |config|
   config.include(HadoopHelpers)
 end
 
-RSpec.shared_context 'a rubydoop proxy' do
+RSpec.shared_context 'a Rubydoop proxy' do
   let :config do
     Java::OrgApacheHadoopConf::Configuration.new
   end
@@ -117,7 +117,7 @@ RSpec.shared_context 'a rubydoop proxy' do
 end
 
 RSpec.shared_context 'a mapper' do
-  include_context 'a rubydoop proxy'
+  include_context 'a Rubydoop proxy'
 
   let :proxy do
     Rubydoop::MapperProxy.new
@@ -149,7 +149,7 @@ RSpec.shared_context 'a mapper' do
 end
 
 RSpec.shared_context 'a reducer or combiner' do
-  include_context 'a rubydoop proxy'
+  include_context 'a Rubydoop proxy'
 
   let :context do
     create_reducer_context(config, task_attempt_id, input_iterator, nil, input_value_counter, writer, nil, nil, comparator, text_class, text_class)
@@ -210,7 +210,7 @@ end
 
 
 RSpec.shared_context 'a partitioner' do
-  include_context 'a rubydoop proxy'
+  include_context 'a Rubydoop proxy'
 
   let :proxy do
     Rubydoop::PartitionerProxy.new
@@ -223,7 +223,7 @@ RSpec.shared_context 'a partitioner' do
 end
 
 RSpec.shared_context 'a sort comparator' do
-  include_context 'a rubydoop proxy'
+  include_context 'a Rubydoop proxy'
 
   let :proxy do
     Rubydoop::SortComparatorProxy.new
@@ -236,7 +236,7 @@ RSpec.shared_context 'a sort comparator' do
 end
 
 RSpec.shared_context 'a grouping comparator' do
-  include_context 'a rubydoop proxy'
+  include_context 'a Rubydoop proxy'
 
   let :proxy do
     Rubydoop::GroupingComparatorProxy.new
@@ -249,7 +249,7 @@ RSpec.shared_context 'a grouping comparator' do
 end
 
 RSpec.shared_context 'an input format' do
-  include_context 'a rubydoop proxy'
+  include_context 'a Rubydoop proxy'
 
   let :proxy do
     Rubydoop::InputFormatProxy.new
