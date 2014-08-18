@@ -90,9 +90,19 @@ RSpec.shared_context 'a Rubydoop proxy' do
     Java::OrgApacheHadoopConf::Configuration.new
   end
 
+  let! :tempdir do
+    Dir.mktmpdir('rubydoop-output')
+  end
+
   before do
-    config.set('mapreduce.output.fileoutputformat.outputdir', "file:#{Dir.pwd}/gurka")
+    config.set('mapreduce.output.fileoutputformat.outputdir', "file:#{tempdir}")
     config.set('rubydoop.job_setup_script', 'support/rubydoop_examples')
+  end
+
+  after do
+    if File.directory?(tempdir)
+      FileUtils.remove_entry_secure(tempdir)
+    end
   end
 
   let :task_attempt_context do
