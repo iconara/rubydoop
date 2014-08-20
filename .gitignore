@@ -7,4 +7,3 @@
 /.classpath
 .rvmrc
 .ruby-*
-/spec/integration/test_project/Gemfile.lock

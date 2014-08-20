@@ -20,7 +20,7 @@ describe 'Packaging and running a project' do
     end
   end
 
-  TEST_PROJECT_DIR = File.expand_path('../test_project', __FILE__)
+  TEST_PROJECT_DIR = File.expand_path('../../resources/test_project', __FILE__)
 
   before :all do
     isolated_run(TEST_PROJECT_DIR, 'bundle exec rake clean package')
