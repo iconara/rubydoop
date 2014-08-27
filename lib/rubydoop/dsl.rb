@@ -94,6 +94,10 @@ module Rubydoop
         class_name = format.to_s.gsub(/^.|_./) {|x| x[-1,1].upcase } + "InputFormat"
         format = Hadoop::Mapreduce::Lib::Input.const_get(class_name)
       end
+      unless format <= Hadoop::Mapreduce::InputFormat
+        @job.configuration.set(Rubydoop::InputFormatProxy::RUBY_CLASS_KEY, format.name)
+        format = Rubydoop::InputFormatProxy
+      end
       format.set_input_paths(@job, paths)
       @job.set_input_format_class(format)
     end

@@ -10,7 +10,7 @@ require 'uniques'
 
 Rubydoop.configure do |input_path, output_path|
   job 'word_count' do
-    input input_path
+    input input_path, format: WordCount::InputFormat
     output "#{output_path}/word_count"
 
     mapper WordCount::Mapper

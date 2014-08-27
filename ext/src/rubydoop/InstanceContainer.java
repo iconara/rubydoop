@@ -32,6 +32,10 @@ public class InstanceContainer {
         return globalRuntime;
     }
 
+    public static InstanceContainer wrapInstance(Object instance) {
+        return new InstanceContainer(getRuntime(), instance);
+    }
+
     public static InstanceContainer createInstance(Configuration conf, String rubyClassProperty) {
         ScriptingContainer runtime = getRuntime();
         Object rubyClass = lookupClassInternal(runtime, conf, rubyClassProperty);
@@ -82,6 +86,14 @@ public class InstanceContainer {
 
     public Object callMethod(String name, Object... args) {
         return runtime.callMethod(instance, name, args);
+    }
+
+    public <T> T callMethod(String name, Class<T> returnType) {
+        return runtime.callMethod(instance, name, returnType);
+    }
+
+    public <T> T runRubyMethod(Class<T> returnType, String name, Object... args) {
+        return runtime.runRubyMethod(returnType, instance, name, args);
     }
 
     public Object maybeCallMethod(String name, Object... args) {
