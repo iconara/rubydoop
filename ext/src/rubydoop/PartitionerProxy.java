@@ -9,6 +9,8 @@ import org.jruby.RubyFixnum;
 
 
 public class PartitionerProxy extends Partitioner<Object, Object> implements Configurable {
+  public static final String RUBY_CLASS_KEY = "rubydoop.partitioner";
+
   private Configuration configuration;
   private InstanceContainer instance;
 
@@ -25,9 +27,6 @@ public class PartitionerProxy extends Partitioner<Object, Object> implements Con
   @Override
   public void setConf(Configuration conf) {
     configuration = conf;
-    if (instance == null) {
-      instance = new InstanceContainer("create_partitioner");
-    }
-    instance.setup(conf);
+    instance = InstanceContainer.createInstance(conf, RUBY_CLASS_KEY);
   }
 }

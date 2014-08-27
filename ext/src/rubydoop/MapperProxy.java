@@ -1,12 +1,13 @@
 package rubydoop;
 
-
 import java.io.IOException;
 
 import org.apache.hadoop.mapreduce.Mapper;
 
 
 public class MapperProxy extends Mapper<Object, Object, Object, Object> {
+  public static final String RUBY_CLASS_KEY = "rubydoop.mapper";
+
   private InstanceContainer instance;
 
   public void map(Object key, Object value, Context ctx) throws IOException, InterruptedException {
@@ -19,16 +20,13 @@ public class MapperProxy extends Mapper<Object, Object, Object, Object> {
 
   protected void setup(Context ctx) throws IOException, InterruptedException {
     super.setup(ctx);
-    if (instance == null) {
-      instance = new InstanceContainer("create_mapper");
-    }
-    instance.setup(ctx.getConfiguration());
+    instance = InstanceContainer.createInstance(ctx.getConfiguration(), RUBY_CLASS_KEY);
     instance.maybeCallMethod("setup", ctx);
   }
 
   protected void cleanup(Context ctx) throws IOException, InterruptedException {
     super.cleanup(ctx);
     instance.maybeCallMethod("cleanup", ctx);
-    instance.cleanup(ctx.getConfiguration());
+    instance = null;
   }
 }

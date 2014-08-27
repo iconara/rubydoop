@@ -17,7 +17,7 @@ import org.apache.hadoop.mapreduce.Job;
 
 import org.jruby.embed.ScriptingContainer;
 import org.jruby.embed.PathType;
-import org.jruby.embed.EvalFailedException;
+import org.jruby.embed.InvokeFailedException;
 
 
 public class RubydoopJobRunner extends Configured implements Tool {
@@ -34,36 +34,24 @@ public class RubydoopJobRunner extends Configured implements Tool {
         return 0;
     }
 
-    private Map<String, Class<?>> proxyClasses() {
-        return new HashMap<String, Class<?>>() {{
-            put("mapper", MapperProxy.class);
-            put("reducer", ReducerProxy.class);
-            put("combiner", CombinerProxy.class);
-            put("partitioner", PartitionerProxy.class);
-            put("grouping_comparator", GroupingComparatorProxy.class);
-            put("sort_comparator", SortComparatorProxy.class);
-        }};
-    }
-
     private List<Job> configureJobs(String jobSetupScript, String[] arguments) throws Exception {
         ScriptingContainer runtime = InstanceContainer.getRuntime();
-        runtime.put("conf", getConf());
-        runtime.put("proxy_classes", proxyClasses());
-        runtime.put("args", arguments);
-        runtime.runScriptlet("$rubydoop_context = Rubydoop::Context.new(conf, proxy_classes, args)");
+        Configuration conf = getConf();
+        conf.set(InstanceContainer.JOB_SETUP_SCRIPT_KEY, jobSetupScript);
+        Object contextClass = runtime.runScriptlet("Rubydoop::Context");
+        Object context = runtime.callMethod(contextClass, "new", conf, arguments);
+        runtime.put("$rubydoop_context", context);
 
         try {
-            runtime.put("job_setup_script", jobSetupScript);
-            runtime.runScriptlet("require(job_setup_script)");
-        } catch (EvalFailedException e) {
+            runtime.callMethod(null, "require", jobSetupScript);
+        } catch (InvokeFailedException e) {
             String message = String.format("Could not load job setup script (\"%s\"): \"%s\"", jobSetupScript, e.getMessage());
             throw new RubydoopRunnerException(message, e);
         }
         
-        List<Job> jobs = (List<Job>) runtime.runScriptlet("$rubydoop_context.jobs");
+        List<Job> jobs = (List<Job>) runtime.callMethod(context, "jobs");
 
         for (Job job : jobs) {
-            job.getConfiguration().set(InstanceContainer.JOB_SETUP_SCRIPT_KEY, jobSetupScript);
             job.setJarByClass(getClass());
         }
 

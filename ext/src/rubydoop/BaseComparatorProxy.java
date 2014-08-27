@@ -13,7 +13,7 @@ public abstract class BaseComparatorProxy implements RawComparator<Object>, Conf
   private Configuration configuration;
   private InstanceContainer instance;
 
-  protected String factoryMethodName;
+  protected String rubyClassProperty;
 
   @Override
   public int compare(Object key, Object value) {
@@ -35,9 +35,6 @@ public abstract class BaseComparatorProxy implements RawComparator<Object>, Conf
   @Override
   public void setConf(Configuration conf) {
     configuration = conf;
-    if (instance == null) {
-      instance = new InstanceContainer(factoryMethodName);
-    }
-    instance.setup(conf);
+    instance = InstanceContainer.createInstance(conf, rubyClassProperty);
   }
 }
