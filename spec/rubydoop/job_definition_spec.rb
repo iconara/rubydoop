@@ -77,6 +77,17 @@ module Rubydoop
         job_definition.output('path', format: :sequence_file)
         expect(configuration.get('mapreduce.outputformat.class')).to eq 'org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat'
       end
+
+      context 'without arguments' do
+        it 'should return the output path' do
+          job_definition.output('secret_rubydoop_output_path')
+          job_definition.output.should == 'secret_rubydoop_output_path'
+        end
+
+        it 'should return nil if the output path has not been set' do
+          job_definition.output.should be_nil
+        end
+      end
     end
 
 

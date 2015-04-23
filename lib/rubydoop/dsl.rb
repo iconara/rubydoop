@@ -106,19 +106,22 @@ module Rubydoop
     #
     # Calls `setOutputFormatClass` on the Hadoop job and uses the static
     # `setOutputPath` on the output format to set the job's output path.
+    # Or if called without arguments, returns the output path of the job.
     #
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html#setOutputFormatClass(java.lang.Class) Hadoop's Job#setOutputFormatClass
     #
     # @param [String] dir The output path
     # @param [Hash] options
     # @option options [JavaClass] :format The output format to use, defaults to `TextOutputFormat`
-    def output(dir, options={})
+    def output(dir=nil, options={})
+      return @output_dir if dir.nil?
+      @output_dir = dir
       format = options.fetch(:format, :text)
       unless format.is_a?(Class)
         class_name = format.to_s.gsub(/^.|_./) {|x| x[-1,1].upcase } + "OutputFormat"
         format = Hadoop::Mapreduce::Lib::Output.const_get(class_name)
       end
-      format.set_output_path(@job, Hadoop::Fs::Path.new(dir))
+      format.set_output_path(@job, Hadoop::Fs::Path.new(@output_dir))
       @job.set_output_format_class(format)
     end
 
