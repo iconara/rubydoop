@@ -78,9 +78,21 @@ module Rubydoop
         expect(configuration.get('mapreduce.outputformat.class')).to eq 'org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat'
       end
 
-      it 'should be able to append a unique suffix to the path' do
-        job_definition.output('path', unique: true)
-        job_definition.output.should =~ /\Apath-\d{10}-\d{5}\Z/
+      it 'should raise ArgumentError if only given options' do
+        expect { job_definition.output(format: :text) }.to raise_error(ArgumentError)
+      end
+
+      context 'with intermediate paths' do
+        it 'adds a unique suffix to the path' do
+          job_definition.output('path', intermediate: true)
+          job_definition.output.should =~ /\Apath-\d{10}-\d{5}\Z/
+        end
+
+        it 'should default to the job name when dir is not set' do
+          job.job_name = 'job-name'
+          job_definition.output(intermediate: true)
+          job_definition.output.should =~ /\Ajob-name-\d{10}-\d{5}\Z/
+        end
       end
 
       context 'without arguments' do

@@ -115,10 +115,16 @@ module Rubydoop
     # @option options [JavaClass] :format The output format to use, defaults to `TextOutputFormat`
     def output(dir=nil, options={})
       return @output_dir if dir.nil?
-      @output_dir = dir
-      if options[:unique]
-        @output_dir += sprintf('-%010d-%05d', Time.now, rand(1e5))
+      if dir.is_a?(Hash)
+        options = dir
+        if options[:intermediate]
+          dir = @job.job_name
+        else
+          raise ArgumentError, sprintf('neither dir nor intermediate: true was specified')
+        end
       end
+      dir = sprintf('%s-%010d-%05d', dir, Time.now, rand(1e5)) if options[:intermediate]
+      @output_dir = dir
       format = options.fetch(:format, :text)
       unless format.is_a?(Class)
         class_name = format.to_s.gsub(/^.|_./) {|x| x[-1,1].upcase } + "OutputFormat"
