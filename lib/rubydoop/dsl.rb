@@ -116,6 +116,9 @@ module Rubydoop
     def output(dir=nil, options={})
       return @output_dir if dir.nil?
       @output_dir = dir
+      if options[:unique]
+        @output_dir += sprintf('-%010d-%05d', Time.now, rand(1e5))
+      end
       format = options.fetch(:format, :text)
       unless format.is_a?(Class)
         class_name = format.to_s.gsub(/^.|_./) {|x| x[-1,1].upcase } + "OutputFormat"

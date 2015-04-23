@@ -78,6 +78,11 @@ module Rubydoop
         expect(configuration.get('mapreduce.outputformat.class')).to eq 'org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat'
       end
 
+      it 'should be able to append a unique suffix to the path' do
+        job_definition.output('path', unique: true)
+        job_definition.output.should =~ /\Apath-\d{10}-\d{5}\Z/
+      end
+
       context 'without arguments' do
         it 'should return the output path' do
           job_definition.output('secret_rubydoop_output_path')
