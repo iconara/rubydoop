@@ -78,7 +78,7 @@ module Rubydoop
         expect(configuration.get('mapreduce.outputformat.class')).to eq 'org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat'
       end
 
-      it 'should raise ArgumentError if only given options' do
+      it 'raises ArgumentError if only given options' do
         expect { job_definition.output(format: :text) }.to raise_error(ArgumentError)
       end
 
@@ -88,7 +88,7 @@ module Rubydoop
           job_definition.output.should =~ /\Apath-\d{10}-\d{5}\Z/
         end
 
-        it 'should default to the job name when dir is not set' do
+        it 'defaults to the job name when dir is not set' do
           job.job_name = 'job-name'
           job_definition.output(intermediate: true)
           job_definition.output.should =~ /\Ajob-name-\d{10}-\d{5}\Z/
@@ -96,12 +96,12 @@ module Rubydoop
       end
 
       context 'without arguments' do
-        it 'should return the output path' do
+        it 'returns the output path' do
           job_definition.output('secret_rubydoop_output_path')
           job_definition.output.should == 'secret_rubydoop_output_path'
         end
 
-        it 'should return nil if the output path has not been set' do
+        it 'returns nil if the output path has not been set' do
           job_definition.output.should be_nil
         end
       end
