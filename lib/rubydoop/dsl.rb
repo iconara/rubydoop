@@ -296,13 +296,13 @@ module Rubydoop
     def self.class_setter(dsl_name)
       define_method(dsl_name) do |cls|
         if cls
-          @job.send("set_#{dsl_name}_class", cls.java_class)
+          @job.send("set_#{dsl_name}_class", cls.to_java(Java::JavaLang::Class))
           instance_variable_set(:"@#{dsl_name}", cls)
         end
         instance_variable_get(:"@#{dsl_name}")
       end
       define_method("#{dsl_name}=") do |cls|
-        @job.send("set_#{dsl_name}_class", cls.java_class)
+        @job.send("set_#{dsl_name}_class", cls.to_java(Java::JavaLang::Class))
       end
     end
 
