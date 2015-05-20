@@ -2,9 +2,16 @@
 
 require 'spec_helper'
 
-shared_examples 'a Rubydoop map reduce proxy' do
+shared_examples 'proxy-unit-tests' do
   let :target do
     double(:target)
+  end
+
+  class RubyClass
+  end
+
+  let :ruby_class do
+    RubyClass
   end
 
   before do
@@ -59,32 +66,29 @@ shared_examples 'a Rubydoop map reduce proxy' do
 end
 
 describe Java::Rubydoop::MapperProxy do
-  include_context 'a Rubydoop mapper proxy'
+  include_context 'mapper-proxy'
+  include_context 'proxy-unit-tests'
 
-  it_behaves_like 'a Rubydoop map reduce proxy' do
-    let :main_method do
-      :map
-    end
+  let :main_method do
+    :map
   end
 end
 
 describe Java::Rubydoop::ReducerProxy do
-  include_context 'a Rubydoop reducer proxy'
+  include_context 'reducer-proxy'
+  include_context 'proxy-unit-tests'
 
-  it_behaves_like 'a Rubydoop map reduce proxy' do
-    let :main_method do
-      :reduce
-    end
+  let :main_method do
+    :reduce
   end
 end
 
 describe Java::Rubydoop::CombinerProxy do
-  include_context 'a Rubydoop combiner proxy'
+  include_context 'combiner-proxy'
+  include_context 'proxy-unit-tests'
 
-  it_behaves_like 'a Rubydoop map reduce proxy' do
-    let :main_method do
-      :reduce
-    end
+  let :main_method do
+    :reduce
   end
 end
 

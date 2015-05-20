@@ -1,6 +1,46 @@
 # encoding: utf-8
 
 module HadoopIntegrationHelpers
+  class Contexts
+    attr_reader :config, :output_dir
+    def initialize
+      @config = Java::OrgApacheHadoopConf::Configuration.new
+      @task_attempt_id = Java::OrgApacheHadoopMapreduce::TaskAttemptID.new('spec', 0, true, 0, 0)
+    end
+
+    def task_attempt_context
+      @task_attempt_context ||= begin
+        if Java::OrgApacheHadoopMapreduce::TaskAttemptContext.java_class.interface?
+          Java::OrgApacheHadoopMapreduceTask::TaskAttemptContextImpl.new(@config, @task_attempt_id)
+        else
+          Java::OrgApacheHadoopMapreduce::TaskAttemptContext.new(@config, @task_attempt_id)
+        end
+      end
+    end
+
+    def create_mapper_context(reader, writer)
+      if Java::JavaLangReflect::Modifier.abstract?(Java::OrgApacheHadoopMapreduce::Mapper::Context.java_class.modifiers)
+        Java::OrgApacheHadoopMapreduceLibMap::WrappedMapper.new.get_map_context(Java::OrgApacheHadoopMapreduceTask::MapContextImpl.new(@config, @task_attempt_id, reader, writer, nil, nil, nil))
+      else
+        Java::OrgApacheHadoopMapreduce::Mapper::Context.new(Java::OrgApacheHadoopMapreduce::Mapper.new, @config, @task_attempt_id, reader, writer, nil, nil, nil)
+      end
+    end
+
+    def create_reducer_context(input_iterator, writer, options = {})
+      input_value_counter = options[:input_value_counter] || Java::OrgApacheHadoopMapreduce::Counters.new.find_counter('input', 'values')
+      key_class = options[:key_class] || input_iterator.respond_to?(:key_class) ? input_iterator.key_class : Java::OrgApacheHadoopIo::Text.java_class
+      value_class = options[:value_class] || input_iterator.respond_to?(:value_class) ? input_iterator.value_class : Java::OrgApacheHadoopIo::Text.java_class
+      comparator = options[:comparator] || Java::OrgApacheHadoopIo::WritableComparator.get(key_class)
+      @reduce_context ||= begin
+        if Java::JavaLangReflect::Modifier.abstract?(Java::OrgApacheHadoopMapreduce::Reducer::Context.java_class.modifiers)
+          Java::OrgApacheHadoopMapreduceLibReduce::WrappedReducer.new.get_reducer_context(Java::OrgApacheHadoopMapreduceTask::ReduceContextImpl.new(@config, @task_attempt_id, input_iterator, nil, input_value_counter, writer, nil, nil, comparator, key_class, value_class))
+        else
+          Java::OrgApacheHadoopMapreduce::Reducer::Context.new(Java::OrgApacheHadoopMapreduce::Reducer.new, @config, @task_attempt_id, input_iterator, nil, input_value_counter, writer, nil, nil, comparator, key_class, value_class)
+        end
+      end
+    end
+  end
+
   class StringCollectingRecordWriter < Java::OrgApacheHadoopMapreduce::RecordWriter
     attr_reader :entries
 
@@ -60,95 +100,3 @@ end
 RSpec.configure do |config|
   config.include(HadoopIntegrationHelpers)
 end
-
-RSpec.shared_context 'a Rubydoop mapper', :rubydoop => :mapper do
-  include_context 'a Rubydoop mapper proxy'
-
-  let :ruby_class do
-    described_class
-  end
-
-  let :inputs do
-    []
-  end
-
-  let :outputs do
-    []
-  end
-
-  let :reader do
-    HadoopIntegrationHelpers::StringArrayRecordReader.new(*inputs)
-  end
-
-  let :writer do
-    HadoopIntegrationHelpers::StringCollectingRecordWriter.new(outputs)
-  end
-end
-
-RSpec.shared_context 'a Rubydoop reducer or combiner' do
-  include_context 'a Rubydoop reducer or combiner proxy'
-
-  let :ruby_class do
-    described_class
-  end
-
-  let :inputs do
-    []
-  end
-
-  let :outputs do
-    []
-  end
-
-  let :input_iterator do
-    HadoopIntegrationHelpers::TextRawKeyValueIterator.new(*inputs)
-  end
-
-  let :writer do
-    HadoopIntegrationHelpers::StringCollectingRecordWriter.new(outputs)
-  end
-end
-
-RSpec.shared_context 'a Rubydoop reducer', :rubydoop => :reducer do
-  include_context 'a Rubydoop reducer proxy'
-  include_context 'a Rubydoop reducer or combiner'
-end
-
-RSpec.shared_context 'a Rubydoop combiner', :rubydoop => :combiner do
-  include_context 'a Rubydoop combiner proxy'
-  include_context 'a Rubydoop reducer or combiner'
-end
-
-RSpec.shared_context 'a Rubydoop partitioner', :rubydoop => :partitioner do
-  include_context 'a Rubydoop partitioner proxy'
-
-  let :ruby_class do
-    described_class
-  end
-end
-
-RSpec.shared_context 'a Rubydoop sort comparator', :rubydoop => :sort_comparator do
-  include_context 'a Rubydoop sort comparator proxy'
-
-  let :ruby_class do
-    described_class
-  end
-
-end
-
-RSpec.shared_context 'a Rubydoop grouping comparator', :rubydoop => :grouping_comparator do
-  include_context 'a Rubydoop grouping comparator proxy'
-
-  let :ruby_class do
-    described_class
-  end
-end
-
-RSpec.shared_context 'an Rubydoop input format', :rubydoop => :input_format do
-  include_context 'a Rubydoop input format proxy'
-
-  let :ruby_class do
-    described_class
-  end
-end
-

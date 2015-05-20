@@ -10,7 +10,9 @@ module RubydoopExamples
   end
 end
 
-describe RubydoopExamples::IdentityMapper, rubydoop: :mapper do
+describe RubydoopExamples::IdentityMapper do
+  include_context 'mapper-proxy'
+
   let :inputs do
     [%w[key1 val1], %w[key1 val2], %w[key2 val3]]
   end
@@ -38,7 +40,9 @@ module RubydoopExamples
   end
 end
 
-describe RubydoopExamples::SetupCleanupMapper, rubydoop: :mapper do
+describe RubydoopExamples::SetupCleanupMapper do
+  include_context 'mapper-proxy'
+
   it 'writes a value pair from #setup' do
     proxy.run(context)
     expect(outputs).to include(%w[setup value])
@@ -58,7 +62,9 @@ module RubydoopExamples
   end
 end
 
-describe RubydoopExamples::CountReducer, rubydoop: :reducer do
+describe RubydoopExamples::CountReducer do
+  include_context 'reducer-proxy'
+
   let :inputs do
     [%w[key1 val1], %w[key1 val2], %w[key2 val3]]
   end
@@ -85,7 +91,9 @@ module RubydoopExamples
   end
 end
 
-describe RubydoopExamples::SetupCleanupReducer, rubydoop: :combiner do
+describe RubydoopExamples::SetupCleanupReducer do
+  include_context 'combiner-proxy'
+
   it 'writes a value pair from #setup' do
     proxy.run(context)
     expect(outputs).to include(%w[setup value])
@@ -105,7 +113,9 @@ module RubydoopExamples
   end
 end
 
-describe RubydoopExamples::NumericPartitioner, rubydoop: :partitioner do
+describe RubydoopExamples::NumericPartitioner do
+  include_context 'partitioner-proxy'
+
   it 'returns entry modulo number of partitions' do
     partition = proxy.get_partition('123', 'value', 12)
     expect(partition).to eq 3
@@ -120,7 +130,9 @@ module RubydoopExamples
   end
 end
 
-describe RubydoopExamples::NumericRawComparator, rubydoop: :sort_comparator do
+describe RubydoopExamples::NumericRawComparator do
+  include_context 'sort-comparator-proxy'
+
   it 'returns a number indicating order' do
     result = proxy.compare('111'.to_java_bytes, 0, 2, '999'.to_java_bytes, 2, 1)
     expect(result).to be > 0
@@ -163,19 +175,21 @@ module RubydoopExamples
   end
 end
 
-describe RubydoopExamples::HardcodedInputFormat, rubydoop: :input_format do
+describe RubydoopExamples::HardcodedInputFormat do
+  include_context 'input-format-proxy'
+
   it 'returns yields one hardcoded split' do
-    splits = proxy.get_splits(task_attempt_context)
+    splits = proxy.get_splits(context)
     expect(splits.size).to eq 1
   end
 
   context 'a returned record reader' do
     let :reader do
-      proxy.create_record_reader(nil, task_attempt_context)
+      proxy.create_record_reader(nil, context)
     end
 
     it 'yields the hardcoded inputs' do
-      reader = proxy.create_record_reader(nil, task_attempt_context)
+      reader = proxy.create_record_reader(nil, context)
       expect(reader.next_key_value).to eq true
       expect(reader.current_key).to eq 'key1'
       expect(reader.current_value).to eq 'val1'
