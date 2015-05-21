@@ -101,5 +101,76 @@ module Rubydoop
         expect(configuration.get_float('apa', 0.0)).to be_within(0.001).of(3.14)
       end
     end
+
+    shared_examples 'class-setter' do
+      let :values do
+        properties.map do |property|
+          configuration.get(property)
+        end
+      end
+
+      it 'allows setting the property to a Java class proxy' do
+        job_definition.send(setter, Hadoop::Io::BytesWritable)
+        values.should include('org.apache.hadoop.io.BytesWritable')
+      end
+
+      it 'allows setting the property to a Java class instance' do
+        job_definition.send(setter, Hadoop::Io::BytesWritable.java_class)
+        values.should include('org.apache.hadoop.io.BytesWritable')
+      end
+
+      it 'allows setting the property to a Ruby class instance' do
+        job_definition.send(setter, String) # Not that org.jruby.RubyString is a good candidate, but there is no better built-in class
+        values.should include('org.jruby.RubyString')
+      end
+    end
+
+    describe '#output_key' do
+      let :setter do
+        :output_key
+      end
+
+      let :properties do
+        %w[mapreduce.job.output.key.class mapred.output.key.class]
+      end
+
+      include_examples 'class-setter'
+    end
+
+    describe '#output_value' do
+      let :setter do
+        :output_value
+      end
+
+      let :properties do
+        %w[mapreduce.job.output.value.class mapred.output.value.class]
+      end
+
+      include_examples 'class-setter'
+    end
+
+    describe '#map_output_key' do
+      let :setter do
+        :map_output_key
+      end
+
+      let :properties do
+        %w[mapreduce.map.output.key.class mapred.mapoutput.key.class]
+      end
+
+      include_examples 'class-setter'
+    end
+
+    describe '#map_output_value' do
+      let :setter do
+        :map_output_value
+      end
+
+      let :properties do
+        %w[mapreduce.map.output.value.class mapred.mapoutput.value.class]
+      end
+
+      include_examples 'class-setter'
+    end
   end
 end
