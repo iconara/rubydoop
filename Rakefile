@@ -53,7 +53,7 @@ namespace :setup do
   end
 
   task :test_project do
-    Dir.chdir('spec/integration/test_project') do
+    Dir.chdir('spec/resources/test_project') do
       command = (<<-END).lines.map(&:strip).join(' && ')
       rm -f Gemfile.lock
       rvm $RUBY_VERSION do rvm gemset create rubydoop-test_project

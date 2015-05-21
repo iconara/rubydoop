@@ -144,7 +144,7 @@ Rubydoop requires Hadoop, RVM, and Bundler to be installed to compile from sourc
 
 Running the RSpec tests furthermore requires a one-time setup
 
-    $ (cd spec/integration/test_project && bundle)
+    $ rake setup spec
 
 ## Copyright
 
