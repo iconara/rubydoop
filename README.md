@@ -134,17 +134,19 @@ You can pass any other `ToolRunner` arguments like `-config` if you want, but th
 
 This JAR is completely self-contained. It even contains a complete JRuby runtime (that's why it's so big!), and you can send it off to your Hadoop cluster, or to Amazon's Elastic MapReduce, just like any other Hadoop job written in Java.
 
-## Building from source
+## Running the tests and building from source
 
-Rubydoop requires Hadoop, RVM, and Bundler to be installed to compile from source
+Rubydoop requires Hadoop, RVM, and Bundler to be installed to compile from source.
 
-    $ source .rvmrc
-    $ bundle
-    $ rake build
+Run the tests like this:
 
-Running the RSpec tests furthermore requires a one-time setup
+    $ bundle install
+    $ rake setup
+    $ rake spec
 
-    $ rake setup spec
+The two first commands are one-time setup steps. The third will build the Java extensions before running the tests, but if you want to just build run `rake build`.
+
+Should these instructions not work check the `.travis.yml` file and see how it runs the tests.
 
 ## Copyright
 
