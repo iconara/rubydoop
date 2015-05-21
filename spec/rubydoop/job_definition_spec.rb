@@ -79,7 +79,7 @@ module Rubydoop
       end
 
       it 'returns the output path' do
-        job_definition.output('secret_rubydoop_output_path').should == 'secret_rubydoop_output_path'
+        expect(job_definition.output('secret_rubydoop_output_path')).to eq('secret_rubydoop_output_path')
       end
 
       it 'raises ArgumentError if only given options' do
@@ -88,24 +88,24 @@ module Rubydoop
 
       context 'with intermediate paths' do
         it 'adds a unique suffix to the path' do
-          job_definition.output('path', intermediate: true).should =~ /\Apath-\d{10}-\d{5}\Z/
+          expect(job_definition.output('path', intermediate: true)).to match(/\Apath-\d{10}-\d{5}\Z/)
         end
 
         it 'defaults to the job name when dir is not set' do
           job.job_name = 'job-name'
-          job_definition.output(intermediate: true).should =~ /\Ajob-name-\d{10}-\d{5}\Z/
+          expect(job_definition.output(intermediate: true)).to match(/\Ajob-name-\d{10}-\d{5}\Z/)
         end
       end
 
       context 'without arguments' do
         it 'returns nil if the output path has not been set' do
-          job_definition.output.should be_nil
+          expect(job_definition.output).to be_nil
         end
 
         it "doesn't change the output path" do
           job_definition.output('secret_rubydoop_output_path')
           job_definition.output
-          job_definition.output.should == 'secret_rubydoop_output_path'
+          expect(job_definition.output).to eq('secret_rubydoop_output_path')
         end
       end
     end
@@ -142,17 +142,17 @@ module Rubydoop
 
       it 'allows setting the property to a Java class proxy' do
         job_definition.send(setter, Hadoop::Io::BytesWritable)
-        values.should include('org.apache.hadoop.io.BytesWritable')
+        expect(values).to include('org.apache.hadoop.io.BytesWritable')
       end
 
       it 'allows setting the property to a Java class instance' do
         job_definition.send(setter, Hadoop::Io::BytesWritable.java_class)
-        values.should include('org.apache.hadoop.io.BytesWritable')
+        expect(values).to include('org.apache.hadoop.io.BytesWritable')
       end
 
       it 'allows setting the property to a Ruby class instance' do
         job_definition.send(setter, String) # Not that org.jruby.RubyString is a good candidate, but there is no better built-in class
-        values.should include('org.jruby.RubyString')
+        expect(values).to include('org.jruby.RubyString')
       end
     end
 
