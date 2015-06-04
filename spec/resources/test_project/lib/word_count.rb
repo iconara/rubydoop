@@ -120,4 +120,26 @@ module WordCount
       ctx.get_counter('Setup and Cleanup', 'COMBINER_CLEANUP_COUNT').increment(1)
     end
   end
+
+  class DiffReducer < Reducer
+    def initialize
+      @output_value = Hadoop::Io::Text.new
+    end
+
+    def setup(ctx)
+      ctx.get_counter('Setup and Cleanup', 'REDUCER_SETUP_COUNT').increment(1)
+    end
+
+    def cleanup(ctx)
+      ctx.get_counter('Setup and Cleanup', 'REDUCER_CLEANUP_COUNT').increment(1)
+    end
+
+    def reduce(key, values, context)
+      values = values.map(&:to_s)
+      if values.size != 2 || values.first != values.last
+        @output_value.set(values.sort.join('/'))
+        context.write(key, @output_value)
+      end
+    end
+  end
 end
