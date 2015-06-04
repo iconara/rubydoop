@@ -111,7 +111,7 @@ describe 'Packaging and running a project' do
 
     context 'the word count job' do
       let :words do
-        Hash[File.readlines('data/output/word_count/part-r-00000').map { |line| k, v = line.split(/\s/); [k, v.to_i] }]
+        Hash[File.readlines('data/output/word_count-custom/part-r-00000').map { |line| k, v = line.split(/\s/); [k, v.to_i] }]
       end
 
       it 'runs the mapper and reducer and writes the output in the specified directory' do
@@ -131,6 +131,17 @@ describe 'Packaging and running a project' do
         it "runs the #{type} cleanup method" do
           expect(log).to match(/#{type.upcase}_CLEANUP_COUNT=1$/)
         end
+      end
+    end
+
+    context 'the difference job' do
+      let :differences do
+        Hash[File.readlines('data/output/word_count-diff/part-r-00000').map { |line| line.split(/\s/) }]
+      end
+
+      it 'reflects the lack of Alice doubling combiner for plain' do
+        expect(differences).to include('alice')
+        expect(differences.size).to eq 1
       end
     end
 

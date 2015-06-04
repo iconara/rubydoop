@@ -9,16 +9,42 @@ require 'uniques'
 
 
 Rubydoop.configure do |input_path, output_path|
-  job 'word_count' do
-    input input_path, format: WordCount::InputFormat
-    output "#{output_path}/word_count"
+  parallel do
+    job 'word_count plain' do
+      input input_path
+      output "#{output_path}/word_count-plain"
 
-    mapper WordCount::Mapper
-    combiner WordCount::AliceDoublingCombiner
-    reducer WordCount::Reducer
+      mapper WordCount::Mapper
+      reducer WordCount::Reducer
+
+      output_key Hadoop::Io::Text
+      output_value Hadoop::Io::IntWritable
+    end
+
+    job 'word_count custom' do
+      input input_path, format: WordCount::InputFormat
+      output "#{output_path}/word_count-custom"
+
+      mapper WordCount::Mapper
+      combiner WordCount::AliceDoublingCombiner
+      reducer WordCount::Reducer
+
+      output_key Hadoop::Io::Text
+      output_value Hadoop::Io::IntWritable
+    end
+  end
+
+  job 'difference' do
+    input "#{output_path}/word_count-{plain,custom}", format: :key_value_text
+    output "#{output_path}/word_count-diff"
+
+    map_output_key Hadoop::Io::Text
+    map_output_value Hadoop::Io::Text
+
+    reducer WordCount::DiffReducer
 
     output_key Hadoop::Io::Text
-    output_value Hadoop::Io::IntWritable
+    output_value Hadoop::Io::Text
   end
 end
 
