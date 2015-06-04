@@ -1,42 +1,29 @@
 package rubydoop;
 
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapred.JobConf;
 
 import org.jruby.embed.ScriptingContainer;
-import org.jruby.embed.PathType;
 import org.jruby.embed.InvokeFailedException;
 
 
 public class RubydoopJobRunner extends Configured implements Tool {
     public int run(String[] args) throws Exception {
-        String jobSetupScript = args[0];
-        String[] arguments = Arrays.copyOfRange(args, 1, args.length);
-
-        for (Job job : configureJobs(jobSetupScript, arguments)) {
-            if (!job.waitForCompletion(true)) {
-                return 1;
-            }
+        if (!run(args[0], Arrays.copyOfRange(args, 1, args.length))) {
+            return 1;
         }
-
         return 0;
     }
 
-    private List<Job> configureJobs(String jobSetupScript, String[] arguments) throws Exception {
+    private boolean run(String jobSetupScript, String[] arguments) throws Exception {
         ScriptingContainer runtime = InstanceContainer.getRuntime();
-        Configuration conf = getConf();
+        Configuration conf = new JobConf(getConf(), getClass());
         conf.set(InstanceContainer.JOB_SETUP_SCRIPT_KEY, jobSetupScript);
         Object contextClass = runtime.runScriptlet("Rubydoop::Context");
         Object context = runtime.callMethod(contextClass, "new", conf, arguments);
@@ -48,14 +35,15 @@ public class RubydoopJobRunner extends Configured implements Tool {
             String message = String.format("Could not load job setup script (\"%s\"): \"%s\"", jobSetupScript, e.getMessage());
             throw new RubydoopRunnerException(message, e);
         }
-        
-        List<Job> jobs = (List<Job>) runtime.callMethod(context, "jobs");
 
-        for (Job job : jobs) {
-            job.setJarByClass(getClass());
+        Object completed = runtime.callMethod(context, "wait_for_completion", true);
+        if (completed == null) {
+            return false;
+        } else if (completed instanceof Boolean) {
+            return (boolean)(Boolean)completed;
+        } else {
+            return true;
         }
-
-        return jobs;
     }
 
     public static void main(String[] args) throws Exception {

@@ -360,7 +360,7 @@ module Rubydoop
 
   # @private
   class Context
-    attr_reader :jobs, :arguments
+    attr_reader :arguments
 
     def initialize(conf, arguments)
       @conf = conf
@@ -372,6 +372,12 @@ module Rubydoop
       hadoop_job = Hadoop::Mapreduce::Job.new(@conf, name)
       @jobs << hadoop_job
       hadoop_job
+    end
+
+    def wait_for_completion(verbose)
+      @jobs.all? do |job|
+        job.wait_for_completion(verbose)
+      end
     end
   end
 end
