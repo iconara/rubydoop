@@ -5,5 +5,7 @@
 /doc
 /.yardoc
 /.classpath
+/vendor/bundle
+/vendor/test_project-bundle
 .rvmrc
 .ruby-*

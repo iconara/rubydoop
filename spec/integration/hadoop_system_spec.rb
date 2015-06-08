@@ -16,14 +16,14 @@ end
 describe 'Packaging and running a project' do
   def isolated_run(dir, cmd)
     Dir.chdir(dir) do
-      Bundler.clean_system("rvm $RUBY_VERSION@rubydoop-test_project do #{cmd}")
+      Bundler.clean_system(cmd)
     end
   end
 
   TEST_PROJECT_DIR = File.expand_path('../../resources/test_project', __FILE__)
 
   before :all do
-    isolated_run(TEST_PROJECT_DIR, 'bundle exec rake clean package')
+    isolated_run(TEST_PROJECT_DIR, '.bundle/bin/rake clean package')
   end
 
   around do |example|

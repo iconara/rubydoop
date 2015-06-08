@@ -54,14 +54,7 @@ namespace :setup do
 
   task :test_project do
     Dir.chdir('spec/resources/test_project') do
-      command = (<<-END).lines.map(&:strip).join(' && ')
-      rm -f Gemfile.lock
-      rvm $RUBY_VERSION do rvm gemset create rubydoop-test_project
-      rvm $RUBY_VERSION@rubydoop-test_project do gem install bundler
-      rvm $RUBY_VERSION@rubydoop-test_project do bundle install --retry 3
-      END
-      puts command
-      Bundler.clean_system(command)
+      Bundler.clean_system('bundle install --retry 3 --path ../../../vendor/test_project-bundle --binstubs .bundle/bin')
     end
   end
 
