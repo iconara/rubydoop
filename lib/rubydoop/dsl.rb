@@ -62,6 +62,14 @@ module Rubydoop
       job.instance_exec(&block)
       job
     end
+
+    def parallel(&block)
+      @context.parallel(&block)
+    end
+
+    def sequence(&block)
+      @context.sequence(&block)
+    end
   end
 
   # Job configuration DSL.
@@ -360,18 +368,77 @@ module Rubydoop
 
   # @private
   class Context
-    attr_reader :jobs, :arguments
+    attr_reader :arguments
 
     def initialize(conf, arguments)
       @conf = conf
       @arguments = arguments.to_a
-      @jobs = []
+      @job_stack = [Jobs::Sequence.new]
     end
 
     def create_job(name)
       hadoop_job = Hadoop::Mapreduce::Job.new(@conf, name)
-      @jobs << hadoop_job
+      @job_stack.last.add(hadoop_job)
       hadoop_job
+    end
+
+    def wait_for_completion(verbose)
+      @job_stack.first.wait_for_completion(verbose)
+    end
+
+    def parallel
+      push(Jobs::Parallel.new)
+      if block_given?
+        yield
+        pop
+      end
+    end
+
+    def sequence
+      push(Jobs::Sequence.new)
+      if block_given?
+        yield
+        pop
+      end
+    end
+
+    def push(job_list)
+      @job_stack.last.add(job_list)
+      @job_stack.push(job_list)
+    end
+
+    def pop
+      @job_stack.pop
+    end
+
+    class Jobs
+      attr_reader :jobs
+
+      def initialize
+        @jobs = []
+      end
+
+      def add(job)
+        @jobs.push(job)
+      end
+
+      class Sequence < Jobs
+        def wait_for_completion(verbose)
+          @jobs.all? do |job|
+            job.wait_for_completion(verbose)
+          end
+        end
+      end
+
+      class Parallel < Jobs
+        def wait_for_completion(verbose)
+          @jobs.map do |job|
+            Thread.new do
+              job.wait_for_completion(verbose)
+            end
+          end.map!(&:value).all?
+        end
+      end
     end
   end
 end
