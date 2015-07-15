@@ -21,6 +21,7 @@ module Rubydoop
     # @option options [String]        :project_base_dir The project's base dir, defaults to the current directory (the assumption is that Package will be used from a Rake task)
     # @option options [String]        :project_name     The name of the JAR file (minus .jar), defaults to the directory name of the `:project_base_dir`
     # @option options [String]        :build_dir        The directory to put the final JAR into, defaults to `:project_base_dir + '/build'`
+    # @option options [String]        :jruby_jar_path   The path to a local copy of `jruby-complete.jar`, unless specified you need to have `jruby-jars` in your `Gemfile`
     # @option options [Array<String>] :gem_groups       All gems from these Gemfile groups will be included, defaults to `[:default]` (the top-level group of a Gemfile)
     # @option options [Array<String>] :lib_jars         Paths to extra JAR files to include in the JAR's lib directory (where they will be on the classpath when the job is run)
     def initialize(options={})
@@ -42,7 +43,8 @@ module Rubydoop
         build_dir: @options[:build_dir],
         jar_name: @options[:jar_path],
         gem_groups: @options[:gem_groups],
-        extra_files: @options[:lib_jars]
+        extra_files: @options[:lib_jars],
+        jruby_complete: @options[:jruby_jar_path]
       ).create
     end
 
