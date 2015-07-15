@@ -10,6 +10,8 @@ gem 'rubydoop', :path => '../../..'
 gem 'paint'
 prefer_default_gem 'json'
 prefer_default_gem 'jruby-openssl'
+gem 'puck', :git => 'git@github.com:jowl/puck.git', :branch => 'default-entrypoint'
+gem 'jruby-jars', "= #{JRUBY_VERSION}"
 
 group :development do
   gem 'rake'
