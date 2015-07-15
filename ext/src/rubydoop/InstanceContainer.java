@@ -26,7 +26,6 @@ public class InstanceContainer {
         if (globalRuntime == null) {
             globalRuntime = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
             globalRuntime.setCompatVersion(CompatVersion.RUBY1_9);
-            globalRuntime.callMethod(null, "require", "setup_load_path");
             globalRuntime.callMethod(null, "require", "rubydoop");
         }
         return globalRuntime;

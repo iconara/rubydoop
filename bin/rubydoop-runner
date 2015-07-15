@@ -1,0 +1,9 @@
+# encoding: utf-8
+
+require 'rubydoop.jar'
+require 'rubydoop/job_runner'
+
+require 'puck'
+$: << "classpath:#{Puck::Jar::JAR_APP_HOME}/lib"
+
+Java::JavaLang::System.exit(Java::OrgApacheHadoopUtil::ToolRunner.run(Rubydoop::JobRunner.new, ARGV.to_java(:string)))
