@@ -10,8 +10,6 @@ import org.jruby.embed.InvokeFailedException;
 
 
 public class InstanceContainer {
-    public static final String JOB_SETUP_SCRIPT_KEY = "rubydoop.job_setup_script";
-
     private static ScriptingContainer globalRuntime;
 
     private final ScriptingContainer runtime;
@@ -48,10 +46,8 @@ public class InstanceContainer {
     }
 
     private static Object lookupClassInternal(ScriptingContainer runtime, Configuration conf, String rubyClassProperty) {
-        String jobConfigScript = getRequired(conf, JOB_SETUP_SCRIPT_KEY);
         String rubyClassName = getRequired(conf, rubyClassProperty);
         try {
-            runtime.callMethod(null, "require", jobConfigScript);
             Object rubyClass = runtime.runScriptlet("Object");
             for (String name : rubyClassName.split("::")) {
               rubyClass = runtime.callMethod(rubyClass, "const_get", name);
