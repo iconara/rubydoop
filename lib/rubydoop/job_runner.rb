@@ -8,6 +8,7 @@ module Rubydoop
     def run(args)
       job_setup_script, *rest = args
       conf = Java::OrgApacheHadoopMapred::JobConf.new(get_conf, get_class)
+      conf.set(Java::Rubydoop::InstanceContainer::JOB_SETUP_SCRIPT_KEY, job_setup_script)
       $rubydoop_context = Context.new(conf, rest)
       begin
         require job_setup_script
