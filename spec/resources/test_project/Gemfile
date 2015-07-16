@@ -2,7 +2,6 @@ source 'https://rubygems.org/'
 
 gem 'rubydoop', :path => '../../..'
 gem 'paint'
-gem 'puck', :git => 'git@github.com:jowl/puck.git', :branch => 'default-entrypoint'
 gem 'jruby-jars', "= #{JRUBY_VERSION}"
 
 group :development do
