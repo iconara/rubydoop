@@ -1,21 +1,29 @@
 # encoding: utf-8
 
-require 'rubydoop/dsl'
 
 module Rubydoop
   class JobRunner < Java::OrgApacheHadoopConf::Configured
     include Java::OrgApacheHadoopUtil::Tool
+
+    def initialize(setup_script=$0, &block)
+      @setup_script = setup_script
+      @block = block
+    end
+
     def run(args)
-      job_setup_script, *rest = args
       conf = Java::OrgApacheHadoopMapred::JobConf.new(get_conf, get_class)
-      conf.set(Java::Rubydoop::InstanceContainer::JOB_SETUP_SCRIPT_KEY, job_setup_script)
-      $rubydoop_context = Context.new(conf, rest)
+      conf.set(Java::Rubydoop::InstanceContainer::JOB_SETUP_SCRIPT_KEY, File.basename(@setup_script))
+      context = Context.new(conf, args)
       begin
-        require job_setup_script
+        ConfigurationDefinition.new(context, &@block)
       rescue => e
-        raise JobRunnerError, sprintf('Could not load job setup script (%s): %s', job_setup_script.inspect, e.message.inspect)
+        raise JobRunnerError, sprintf('Could not load job setup script (%s): %s', @setup_script.inspect, e.message.inspect)
       end
-      $rubydoop_context.wait_for_completion(true) ? 0 : 1
+      context.wait_for_completion(true) ? 0 : 1
+    end
+
+    def self.run(args, &block)
+      Java::JavaLang::System.exit(Java::OrgApacheHadoopUtil::ToolRunner.run(new(&block), args.to_java(:string)))
     end
   end
   JobRunnerError = Class.new(StandardError)

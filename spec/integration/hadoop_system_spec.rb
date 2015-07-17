@@ -34,7 +34,7 @@ describe 'Packaging and running a project' do
 
   context 'Running the project' do
     before :all do
-      isolated_run(TEST_PROJECT_DIR, "#{HADOOP_HOME}/bin/hadoop jar build/test_project.jar rubydoop-runner -conf conf/hadoop-local.xml test_project data/input data/output 2>&1 | tee data/log")
+      isolated_run(TEST_PROJECT_DIR, "#{HADOOP_HOME}/bin/hadoop jar build/test_project.jar test_project -conf conf/hadoop-local.xml data/input data/output 2>&1 | tee data/log")
     end
 
     let :log do

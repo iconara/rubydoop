@@ -13,6 +13,7 @@ public class InstanceContainer {
     public static final String JOB_SETUP_SCRIPT_KEY = "rubydoop.job_setup_script";
 
     private static ScriptingContainer globalRuntime;
+    private static boolean isLoadPathSetup = false;
 
     private final ScriptingContainer runtime;
     private final Object instance;
@@ -26,7 +27,7 @@ public class InstanceContainer {
         if (globalRuntime == null) {
             globalRuntime = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
             globalRuntime.setCompatVersion(CompatVersion.RUBY1_9);
-            globalRuntime.callMethod(null, "require", "rubydoop");
+            globalRuntime.put("$rubydoop_embedded", true);
         }
         return globalRuntime;
     }
@@ -48,10 +49,9 @@ public class InstanceContainer {
     }
 
     private static Object lookupClassInternal(ScriptingContainer runtime, Configuration conf, String rubyClassProperty) {
-        String jobConfigScript = getRequired(conf, JOB_SETUP_SCRIPT_KEY);
         String rubyClassName = getRequired(conf, rubyClassProperty);
         try {
-            runtime.callMethod(null, "require", jobConfigScript);
+            setupLoadPath(runtime, conf);
             Object rubyClass = runtime.runScriptlet("Object");
             for (String name : rubyClassName.split("::")) {
               rubyClass = runtime.callMethod(rubyClass, "const_get", name);
@@ -59,6 +59,16 @@ public class InstanceContainer {
             return rubyClass;
         } catch (InvokeFailedException e) {
             throw new RubydoopConfigurationException(String.format("Cannot load class %s: \"%s\"", rubyClassName, e.getMessage()), e);
+        }
+    }
+
+    private static synchronized void setupLoadPath(ScriptingContainer runtime, Configuration conf) {
+        if (!isLoadPathSetup) {
+            String jobConfigScript = getRequired(conf, JOB_SETUP_SCRIPT_KEY);
+            Object argv = runtime.get("ARGV");
+            runtime.callMethod(argv, "unshift", jobConfigScript);
+            runtime.callMethod(null, "require", "jar-bootstrap.rb");
+            isLoadPathSetup = true;
         }
     }
 

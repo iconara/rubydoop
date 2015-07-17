@@ -33,8 +33,9 @@ module Rubydoop
   #   block is not run (this is a feature, it means that the configuration
   #   block doesn't run in mappers and reducers).
   #
-  def self.configure(impl=ConfigurationDefinition, &block)
-    impl.new($rubydoop_context, &block) if $rubydoop_context
+  def self.run(args=ARGV, &block)
+    return if $rubydoop_embedded
+    JobRunner.run(args, &block)
   end
 
   # Lower level API for configuring jobs.
@@ -47,7 +48,7 @@ module Rubydoop
   #     end
   #
   class ConfigurationDefinition
-    def initialize(context=$rubydoop_context, &block)
+    def initialize(context, &block)
       @context = context
       instance_exec(*arguments, &block) if @context && block_given?
     end
