@@ -3,6 +3,7 @@ package rubydoop;
 
 import org.apache.hadoop.conf.Configuration;
 
+import org.jruby.Ruby;
 import org.jruby.CompatVersion;
 import org.jruby.embed.ScriptingContainer;
 import org.jruby.embed.LocalVariableBehavior;
@@ -25,6 +26,7 @@ public class InstanceContainer {
 
     public static synchronized ScriptingContainer getRuntime() {
         if (globalRuntime == null) {
+            isLoadPathSetup = Ruby.isGlobalRuntimeReady();
             globalRuntime = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
             globalRuntime.setCompatVersion(CompatVersion.RUBY1_9);
             globalRuntime.put("$rubydoop_embedded", true);
