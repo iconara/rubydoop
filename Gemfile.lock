@@ -1,3 +1,9 @@
+PATH
+  remote: .
+  specs:
+    rubydoop (1.2.0)
+      puck (~> 1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -38,6 +44,7 @@ GEM
       method_source (~> 0.8)
       slop (~> 3.3.1)
       spoon (~> 0.0)
+    puck (1.0.0-java)
     pusher-client (0.3.1)
       ruby-hmac (~> 0.4.0)
       websocket (~> 1.0.0)
@@ -86,6 +93,7 @@ DEPENDENCIES
   pry
   rake
   rspec
+  rubydoop!
   rvm
   travis
   yard
