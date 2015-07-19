@@ -18,7 +18,6 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = 'rubydoop'
 
-  # NOTE: requires https://github.com/iconara/puck/pull/16 to work
   s.add_runtime_dependency 'puck', '~> 1.0'
 
   s.files         = Dir['lib/**/*.{rb,jar}']
