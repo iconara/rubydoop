@@ -21,6 +21,6 @@ Gem::Specification.new do |s|
   # NOTE: requires https://github.com/iconara/puck/pull/16 to work
   s.add_runtime_dependency 'puck', '~> 1.0'
 
-  s.files         = Dir['lib/**/*.{rb,jar}', 'bin/rubydoop-runner']
+  s.files         = Dir['lib/**/*.{rb,jar}']
   s.require_paths = %w(lib)
 end
