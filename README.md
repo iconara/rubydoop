@@ -188,7 +188,7 @@ Should these instructions not work check the `.travis.yml` file and see how it r
 
 ## Copyright
 
-Copyright 2012-2013 Theo Hultberg and contributors
+Copyright 2012-2015 Theo Hultberg and contributors
 
 _Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License You may obtain a copy of the License at_
 
