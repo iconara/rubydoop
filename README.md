@@ -106,7 +106,45 @@ Now finally to the job configuration. You can specify more than one and they wil
 * The `output_key` and `output_value` tells Hadoop what output to expect from the mapper and reducer. This needs to be set correctly otherwise Hadoop will complain. If the mapper's output doesn't match the reducer's you can specify the mapper's separately with `map_output_key` and `map_output_value`.
 * You can also use `set 'property.name', 'value'` to set properties, or `raw { |job| ... }` to access the raw `Job` instance. 
 
-The job configuration DSL will be expanded with more features in the future.
+#### Job dependencies and parallel jobs
+
+By default all jobs are run sequentially. This makes it easy to define pipelines of map/reduce jobs where the output of one job is the input of another.
+
+For applications with many jobs you might want to run some of them in parallel, and some in sequence. For this you can group your jobs together with `parallel` and `sequential`, like this (the contents of the `job` blocks are left out to make it easier to follow the example):
+
+```ruby
+Rubydoop.configure do |…|
+  job 'first' do
+    …
+  end
+
+  parallel do
+    job 'second' do
+      …
+    end
+
+    sequential do
+      job 'third' do
+        …
+      end
+
+      job 'fourth' do
+        …
+      end
+    end
+  end
+
+  job 'fifth' do
+    …
+  end
+end
+```
+
+Because the `configure` block acts as an implicit `sequential`, with this config the job `first` will run, then `second` will run in parallel with `third` and `fourth`. `fourth` will wait for `third` to complete before it starts. Finally `fifth` will run when `third` and `fifth` have completed.
+
+You can nest `sequential` and `parallel` to any depth, which should make it possible to describe any directed acyclic graph of jobs.
+
+The benefit of running independent jobs in parallel is that many times it leads to better use of the cluster's resources, but it all depends on the cluster and the workload.
 
 ### Packing it up
 
