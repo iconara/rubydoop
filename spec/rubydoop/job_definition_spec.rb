@@ -22,12 +22,8 @@ module Rubydoop
       job.configuration
     end
 
-    let :context do
-      double(:context)
-    end
-
     let :job_definition do
-      described_class.new(context, job)
+      described_class.new(job)
     end
 
     describe '#input' do

@@ -49,7 +49,7 @@ module Rubydoop
     end
 
     def job(name, &block)
-      job = JobDefinition.new(@context, @context.create_job(name))
+      job = JobDefinition.new(@context.create_job(name))
       job.instance_exec(&block)
       job
     end
@@ -70,8 +70,7 @@ module Rubydoop
   #
   class JobDefinition
     # @private
-    def initialize(context, job)
-      @context = context
+    def initialize(job)
       @job = job
     end
 
