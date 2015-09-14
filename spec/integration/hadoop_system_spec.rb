@@ -32,6 +32,13 @@ describe 'Packaging and running a project' do
     end
   end
 
+  context 'the package' do
+    it 'contains lib/rubydoop.jar' do
+      entries = Java::JavaUtilJar::JarFile.new(File.join(TEST_PROJECT_DIR, 'build/test_project.jar')).entries.map(&:name)
+      expect(entries).to include('lib/rubydoop.jar')
+    end
+  end
+
   context 'Running the project' do
     before :all do
       isolated_run(TEST_PROJECT_DIR, "#{HADOOP_HOME}/bin/hadoop jar build/test_project.jar test_project -conf conf/hadoop-local.xml data/input data/output 2>&1 | tee data/log")

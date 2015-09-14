@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = 'rubydoop'
 
-  s.add_runtime_dependency 'puck', '~> 1.0'
+  s.add_runtime_dependency 'puck', '~> 1.1'
 
   s.files         = Dir['lib/**/*.{rb,jar}']
   s.require_paths = %w(lib)

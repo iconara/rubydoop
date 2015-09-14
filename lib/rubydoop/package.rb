@@ -43,7 +43,7 @@ module Rubydoop
         build_dir: @options[:build_dir],
         jar_name: @options[:jar_path],
         gem_groups: @options[:gem_groups],
-        extra_files: @options[:lib_jars],
+        extra_files: lib_jars,
         jruby_complete: @options[:jruby_jar_path]
       ).create
     end
@@ -59,6 +59,13 @@ module Rubydoop
 
     def method_missing(name, *args)
       @options[name] or super
+    end
+
+    def lib_jars
+      extra_files = { File.join(rubydoop_base_dir, 'lib/rubydoop.jar') => 'lib/rubydoop.jar' }
+      @options[:lib_jars].each_with_object(extra_files) do |jar, extra_files|
+        extra_files[jar] = File.join('lib', File.basename(jar))
+      end
     end
 
     private
