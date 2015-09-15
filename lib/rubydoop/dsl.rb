@@ -56,6 +56,10 @@ module Rubydoop
     def sequence(&block)
       @context.sequence(&block)
     end
+
+    def wait_for_completion(verbose)
+      @context.wait_for_completion(verbose)
+    end
   end
 
   # Job configuration DSL.

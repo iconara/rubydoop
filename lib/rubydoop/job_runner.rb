@@ -21,7 +21,7 @@ module Rubydoop
       rescue => e
         raise JobRunnerError, sprintf('Could not load job setup script (%s): %s', @setup_script.inspect, e.message.inspect), e.backtrace
       end
-      context.wait_for_completion(true) ? 0 : 1
+      configuration_definition.wait_for_completion(true) ? 0 : 1
     end
 
     def self.run(args, &block)
