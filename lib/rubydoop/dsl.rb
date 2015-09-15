@@ -32,6 +32,10 @@ module Rubydoop
     JobRunner.run(args, &block)
   end
 
+  def self.configure(&block)
+    run(&block)
+  end
+
   # Configuration DSL.
   #
   # `Rubydoop.run` blocks are run within the context of an instance of this
