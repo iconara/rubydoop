@@ -5,15 +5,11 @@ require 'spec_helper'
 module Rubydoop
   describe ConfigurationDefinition do
     let :context do
-      Rubydoop::Context.new(config, arguments)
+      Rubydoop::Context.new(config)
     end
 
     let :config do
       Java::OrgApacheHadoopConf::Configuration.new
-    end
-
-    let :arguments do
-      []
     end
 
     before do
@@ -33,9 +29,8 @@ module Rubydoop
         end
 
         let! :definition do
-          described_class.new(context) do
-            job 'spec' do
-            end
+          described_class.new(context).tap do |definition|
+            definition.job('spec') {}
           end
         end
 
@@ -63,10 +58,10 @@ module Rubydoop
 
         context 'in sequence' do
           let! :definition do
-            described_class.new(context) do
-              job('job0') {}
-              job('job1') {}
-              job('job2') {}
+            described_class.new(context).tap do |definition|
+              definition.job('job0') {}
+              definition.job('job1') {}
+              definition.job('job2') {}
             end
           end
 
@@ -97,11 +92,11 @@ module Rubydoop
 
         context 'in parallel' do
           let! :definition do
-            described_class.new(context) do
-              parallel do
-                job('job0') {}
-                job('job1') {}
-                job('job2') {}
+            described_class.new(context).tap do |definition|
+              definition.parallel do
+                definition.job('job0') {}
+                definition.job('job1') {}
+                definition.job('job2') {}
               end
             end
           end

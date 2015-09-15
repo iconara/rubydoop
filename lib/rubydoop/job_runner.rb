@@ -14,9 +14,10 @@ module Rubydoop
       conf = Java::OrgApacheHadoopMapred::JobConf.new(get_conf)
       conf.set(Java::Rubydoop::InstanceContainer::JOB_SETUP_SCRIPT_KEY, File.basename(@setup_script))
       conf.jar = containing_jar
-      context = Context.new(conf, args)
+      context = Context.new(conf)
+      configuration_definition = ConfigurationDefinition.new(context)
       begin
-        ConfigurationDefinition.new(context, &@block)
+        configuration_definition.instance_exec(*args, &@block)
       rescue => e
         raise JobRunnerError, sprintf('Could not load job setup script (%s): %s', @setup_script.inspect, e.message.inspect), e.backtrace
       end

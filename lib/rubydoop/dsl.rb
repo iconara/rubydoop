@@ -39,13 +39,8 @@ module Rubydoop
   #
   class ConfigurationDefinition
     # @private
-    def initialize(context, &block)
+    def initialize(context)
       @context = context
-      instance_exec(*arguments, &block) if block_given?
-    end
-
-    def arguments
-      @context.arguments
     end
 
     def job(name, &block)
@@ -358,11 +353,8 @@ module Rubydoop
 
   # @private
   class Context
-    attr_reader :arguments
-
-    def initialize(conf, arguments)
+    def initialize(conf)
       @conf = conf
-      @arguments = arguments.to_a
       @job_stack = [Jobs::Sequence.new]
     end
 
