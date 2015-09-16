@@ -1,5 +1,7 @@
 # ♪ Rubydoop ♫
 
+[![Build Status](https://travis-ci.org/iconara/rubydoop.png?branch=master)](https://travis-ci.org/iconara/rubydoop)
+
 Rubydoop makes it possible to write Hadoop jobs in Ruby without using the streaming APIs. It configures the Hadoop runtime to run your Ruby code in an embedded JRuby runtime, and it provides a configuration DSL that's way nicer to use than Hadoop's `ToolRunner`.
 
 > _Looking for Rubydoop, Brenden Grace's "Simple Ruby Sugar for Hadoop Streaming"? It can still be found at https://github.com/bcg/rubydoop and if you install v0.0.5 from Rubygems, you'll get that gem._
