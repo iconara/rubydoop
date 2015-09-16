@@ -10,7 +10,7 @@ Rubydoop makes it possible to write Hadoop jobs in Ruby without using the stream
 
 Rubydoop assumes you have some basic experience of Hadoop. The goal of Rubydoop isn't to do someting new on top of Hadoop, it's a way to use Hadoop from JRuby. Feel free to write something awesome that makes Hadoop easier to use on top of it if you like.
 
-Rubydoop is not complete. The configuration DSL only provides the bare basics, but it should make it much easier to set up a Hadoop job compared to a vanilla Java Hadoop project.
+Rubydoop is not complete. The configuration DSL only provides the bare basics, but it should make it much easier to set up a Hadoop job compared to a vanilla Java Hadoop project. If you're looking for something where you don't have to handle the Hadoop APIs and not care about how data is encoded in writables, check out [Humboldt](https://github.com/burtcorp/humboldt), which builds on Rubydoop.
 
 ## Installation
 
