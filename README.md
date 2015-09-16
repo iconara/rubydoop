@@ -4,7 +4,7 @@ Rubydoop makes it possible to write Hadoop jobs in Ruby without using the stream
 
 > _Looking for Rubydoop, Brenden Grace's "Simple Ruby Sugar for Hadoop Streaming"? It can still be found at https://github.com/bcg/rubydoop and if you install v0.0.5 from Rubygems, you'll get that gem._
 
-Rubydoop assumes you have some basic experience of Hadoop. The goal of Rubydoop isn't to do someting new on top of Hadoop, it's a way to use Hadoop from JRuby. Feel free to write something awesome that makes Hadoop easier to use on top of it if you like. 
+Rubydoop assumes you have some basic experience of Hadoop. The goal of Rubydoop isn't to do someting new on top of Hadoop, it's a way to use Hadoop from JRuby. Feel free to write something awesome that makes Hadoop easier to use on top of it if you like.
 
 Rubydoop is not complete. The configuration DSL only provides the bare basics, but it should make it much easier to set up a Hadoop job compared to a vanilla Java Hadoop project.
 
@@ -93,18 +93,18 @@ Rubydoop.configure do |input_path, output_path|
 end
 ```
 
-That was a lot in one go. The first thing that happens is that we `require` the file containing the mapper and reducer implementations. That's really important, otherwise Rubydoop won't be able to find them later. 
+That was a lot in one go. The first thing that happens is that we `require` the file containing the mapper and reducer implementations. That's really important, otherwise Rubydoop won't be able to find them later.
 
 The next thing is a call to `Rubydoop.configure`. We didn't `require` Rubydoop, so where does this come from? You can `require` Rubydoop if you like, but it's not necessary, this file will be loaded by Rubydoop, so Rubydoop will by definition always be loaded already.
 
 The configure block yields the command line arguments to the block. We'll get to command line arguments later, but there's nothing magic about `input_path` and `output_path`, Rubydoop just yields all the arguments given on the command line to the block (minus what Hadoop's tool runner extracts, and the Rubydoop config name -- but let's leave those details for later).
 
-Now finally to the job configuration. You can specify more than one and they will be run in sequence, but word count is simple enough to only need one. The things you can specify using the `job` DSL are the things you would configure in your `main` method (or `run` when using Hadoop's `ToolRunner`). 
+Now finally to the job configuration. You can specify more than one and they will be run in sequence, but word count is simple enough to only need one. The things you can specify using the `job` DSL are the things you would configure in your `main` method (or `run` when using Hadoop's `ToolRunner`).
 
 * The `input` and `output` are aliases for `TextInputFormat.setInputPaths` (the argument should be a comma-separated list of paths) and `TextOutputFormat.setOutputPath` (or if you want to use another input/output format just pass `:format => XyzFormat` as an option to `input` or `output`).
 * The `mapper` and `reducer` are self-explanatory, and there's also a `combiner` to set the combiner, just like in Hadoop.
 * The `output_key` and `output_value` tells Hadoop what output to expect from the mapper and reducer. This needs to be set correctly otherwise Hadoop will complain. If the mapper's output doesn't match the reducer's you can specify the mapper's separately with `map_output_key` and `map_output_value`.
-* You can also use `set 'property.name', 'value'` to set properties, or `raw { |job| ... }` to access the raw `Job` instance. 
+* You can also use `set 'property.name', 'value'` to set properties, or `raw { |job| ... }` to access the raw `Job` instance.
 
 #### Job dependencies and parallel jobs
 
