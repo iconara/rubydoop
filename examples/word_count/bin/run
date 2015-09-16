@@ -12,4 +12,4 @@ fi
 
 cd $(dirname $0)/..
 
-hadoop jar build/word_count.jar -conf conf/hadoop-local.xml word_count "$@"
+hadoop jar build/word_count.jar word-count -conf conf/hadoop-local.xml "$@"
