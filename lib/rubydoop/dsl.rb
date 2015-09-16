@@ -3,9 +3,9 @@
 module Rubydoop
   # Main entrypoint into the configuration DSL.
   #
-  # @example Configuring a job
+  # @example Running a job
   #
-  #   Rubydoop.configure do |*args|
+  #   Rubydoop.run do |*args|
   #     job 'word_count' do
   #       input args[0]
   #       output args[1]
@@ -18,47 +18,37 @@ module Rubydoop
   #     end
   #   end
   #
-  # Within a configure block you can specify one or more jobs, the `job`
-  # blocks are run in the context of a {JobDefinition} instance, so look
-  # at that class for documentation about the available properties. The
-  # `configure` block is run within the context of a {ConfigurationDefinition}
-  # instance. The arguments to the `configure` block is the command line 
-  # arguments, minus those handled by Hadoop's `ToolRunner`.
+  # Within a run block you can specify one or more jobs, the `job` blocks
+  # are run in the context of a {JobDefinition} instance, so look at that
+  # class for documentation about the available properties. The `run` block
+  # is run within the context of a {ConfigurationDefinition} instance. The
+  # arguments to the `run` block is the command line arguments, minus those
+  # handled by Hadoop's `ToolRunner`.
   #
   # @yieldparam [Array<String>] *arguments The command line arguments
   #
-  # @note The tool runner will set the global variable `$rubydoop_context`
-  #   to an object that contains references to the necessary Hadoop
-  #   configuration. Unless this global variable is set the configuration
-  #   block is not run (this is a feature, it means that the configuration
-  #   block doesn't run in mappers and reducers).
-  #
-  def self.configure(impl=ConfigurationDefinition, &block)
-    impl.new($rubydoop_context, &block) if $rubydoop_context
+  def self.run(args=ARGV, &block)
+    return if $rubydoop_embedded
+    JobRunner.run(args, &block)
   end
 
-  # Lower level API for configuring jobs.
+  def self.configure(&block)
+    run(&block)
+  end
+
+  # Configuration DSL.
   #
-  # @example Configuring a job
-  #
-  #     cc = ConfigurationDefinition.new
-  #     cc.job 'word_count' do
-  #       # same DSL as shown in the documentation for Rubydoop.configure
-  #     end
+  # `Rubydoop.run` blocks are run within the context of an instance of this
+  # class. These are the methods available in those blocks.
   #
   class ConfigurationDefinition
-    def initialize(context=$rubydoop_context, &block)
+    # @private
+    def initialize(context)
       @context = context
-      instance_exec(*arguments, &block) if @context && block_given?
-    end
-
-    def arguments
-      @context.arguments
     end
 
     def job(name, &block)
-      return nil unless @context
-      job = JobDefinition.new(@context, @context.create_job(name))
+      job = JobDefinition.new(@context.create_job(name))
       job.instance_exec(&block)
       job
     end
@@ -70,17 +60,20 @@ module Rubydoop
     def sequence(&block)
       @context.sequence(&block)
     end
+
+    def wait_for_completion(verbose)
+      @context.wait_for_completion(verbose)
+    end
   end
 
   # Job configuration DSL.
   #
-  # `Rubydoop.configure` blocks are run within the context of an instance of
-  # this class. These are the methods available in those blocks.
+  # `job` blocks are run within the context of an instance of this
+  # class. These are the methods available in those blocks.
   #
   class JobDefinition
     # @private
-    def initialize(context, job)
-      @context = context
+    def initialize(job)
       @job = job
     end
 
@@ -368,11 +361,8 @@ module Rubydoop
 
   # @private
   class Context
-    attr_reader :arguments
-
-    def initialize(conf, arguments)
+    def initialize(conf)
       @conf = conf
-      @arguments = arguments.to_a
       @job_stack = [Jobs::Sequence.new]
     end
 

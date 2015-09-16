@@ -5,15 +5,11 @@ require 'spec_helper'
 module Rubydoop
   describe ConfigurationDefinition do
     let :context do
-      Rubydoop::Context.new(config, arguments)
+      Rubydoop::Context.new(config)
     end
 
     let :config do
       Java::OrgApacheHadoopConf::Configuration.new
-    end
-
-    let :arguments do
-      []
     end
 
     before do
@@ -26,16 +22,15 @@ module Rubydoop
       double(:job_factory)
     end
 
-    describe 'context wait_for_completion' do
+    describe '#wait_for_completion' do
       context 'with one job' do
         before do
           allow(job_factory).to receive(:create).with(config, anything).and_return(job)
         end
 
         let! :definition do
-          described_class.new(context) do
-            job 'spec' do
-            end
+          described_class.new(context).tap do |definition|
+            definition.job('spec') {}
           end
         end
 
@@ -44,7 +39,7 @@ module Rubydoop
         end
 
         it 'delegates to the job' do
-          result = context.wait_for_completion(verbose = true)
+          result = definition.wait_for_completion(verbose = true)
           expect(result).to eq false
         end
       end
@@ -63,10 +58,10 @@ module Rubydoop
 
         context 'in sequence' do
           let! :definition do
-            described_class.new(context) do
-              job('job0') {}
-              job('job1') {}
-              job('job2') {}
+            described_class.new(context).tap do |definition|
+              definition.job('job0') {}
+              definition.job('job1') {}
+              definition.job('job2') {}
             end
           end
 
@@ -78,30 +73,30 @@ module Rubydoop
           end
 
           it 'returns true when all jobs return true' do
-            result = context.wait_for_completion(true)
+            result = definition.wait_for_completion(true)
             expect(result).to eq true
           end
 
           it 'returns false if any job returns false' do
             allow(jobs[2]).to receive(:wait_for_completion).and_return(false)
-            result = context.wait_for_completion(true)
+            result = definition.wait_for_completion(true)
             expect(result).to eq false
           end
 
           it 'does not start subsequent jobs' do
             allow(jobs[1]).to receive(:wait_for_completion).and_return(false)
             expect(jobs[2]).to_not receive(:wait_for_completion)
-            context.wait_for_completion(true)
+            definition.wait_for_completion(true)
           end
         end
 
         context 'in parallel' do
           let! :definition do
-            described_class.new(context) do
-              parallel do
-                job('job0') {}
-                job('job1') {}
-                job('job2') {}
+            described_class.new(context).tap do |definition|
+              definition.parallel do
+                definition.job('job0') {}
+                definition.job('job1') {}
+                definition.job('job2') {}
               end
             end
           end
@@ -110,7 +105,7 @@ module Rubydoop
             jobs.each do |job|
               expect(job).to receive(:wait_for_completion)
             end
-            context.wait_for_completion(true)
+            definition.wait_for_completion(true)
           end
 
           it 'delegates the jobs in parallel' do
@@ -121,25 +116,25 @@ module Rubydoop
                 latch.await
               end
             end
-            context.wait_for_completion(true)
+            definition.wait_for_completion(true)
             expect(latch.count).to eq 0
           end
 
           it 'returns true when all jobs return true' do
-            result = context.wait_for_completion(true)
+            result = definition.wait_for_completion(true)
             expect(result).to eq true
           end
 
           it 'returns false if any job returns false' do
             allow(jobs[2]).to receive(:wait_for_completion).and_return(false)
-            result = context.wait_for_completion(true)
+            result = definition.wait_for_completion(true)
             expect(result).to eq false
           end
 
           it 'still waits for the completion of all jobs' do
             allow(jobs[1]).to receive(:wait_for_completion).and_return(false)
             expect(jobs[2]).to receive(:wait_for_completion)
-            context.wait_for_completion(true)
+            definition.wait_for_completion(true)
           end
         end
       end

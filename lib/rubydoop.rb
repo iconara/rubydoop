@@ -1,10 +1,7 @@
 # encoding: utf-8
 
-$LOAD_PATH << File.expand_path('..', __FILE__)
-
-
 require 'hadoop'
-
+require 'rubydoop.jar'
 
 # See {Rubydoop.configure} for the job configuration DSL documentation, 
 # {Package} for the packaging documentation, or the {file:README.md README} 
@@ -14,3 +11,4 @@ module Rubydoop
 end
 
 require 'rubydoop/dsl'
+require 'rubydoop/job_runner'

@@ -1,15 +1,8 @@
 source 'https://rubygems.org/'
 
-def prefer_default_gem(name)
-  gem name, "= #{Gem::Specification.find_by_name(name).version}"
-rescue LoadError => e
-  gem name
-end
-
 gem 'rubydoop', :path => '../../..'
 gem 'paint'
-prefer_default_gem 'json'
-prefer_default_gem 'jruby-openssl'
+gem 'jruby-jars', "= #{JRUBY_VERSION}"
 
 group :development do
   gem 'rake'
