@@ -2,6 +2,7 @@
 
 
 module Rubydoop
+  # @private
   class JobRunner < Java::OrgApacheHadoopConf::Configured
     include Java::OrgApacheHadoopUtil::Tool
 
