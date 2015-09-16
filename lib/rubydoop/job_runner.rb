@@ -43,5 +43,6 @@ module Rubydoop
       end
     end
   end
+
   JobRunnerError = Class.new(StandardError)
 end

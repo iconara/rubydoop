@@ -79,7 +79,7 @@ module Rubydoop
 
     # Sets the input paths of the job.
     #
-    # Calls `setInputFormatClass` on the Hadoop job and uses the static 
+    # Calls `setInputFormatClass` on the Hadoop job and uses the static
     # `setInputPaths` on the input format to set the job's input path.
     #
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html#setInputFormatClass(java.lang.Class) Hadoop's Job#setInputFormatClass
@@ -138,7 +138,7 @@ module Rubydoop
 
     # Sets a job property.
     #
-    # Calls `set`/`setBoolean`/`setLong`/`setFloat` on the Hadoop Job's 
+    # Calls `set`/`setBoolean`/`setLong`/`setFloat` on the Hadoop Job's
     # configuration (exact method depends on the type of the value).
     #
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/conf/Configuration.html#set(java.lang.String,%20java.lang.String) Hadoop's Configuration#set
@@ -170,7 +170,7 @@ module Rubydoop
     # The class only needs to implement the method `map`, which will be called
     # exactly like a Java mapper class' `map` method would be called.
     #
-    # You can optionally implement `setup` and `cleanup`, which mirrors the 
+    # You can optionally implement `setup` and `cleanup`, which mirrors the
     # methods of the same name in Java mappers.
     #
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Mapper.html Hadoop's Mapper
@@ -196,7 +196,7 @@ module Rubydoop
     # The class only needs to implement the method `reduce`, which will be called
     # exactly like a Java reducer class' `reduce` method would be called.
     #
-    # You can optionally implement `setup` and `cleanup`, which mirrors the 
+    # You can optionally implement `setup` and `cleanup`, which mirrors the
     # methods of the same name in Java reducers.
     #
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Reducer.html Hadoop's Reducer
@@ -258,7 +258,7 @@ module Rubydoop
 
     # Sets a custom grouping comparator.
     #
-    # The equivalent of calling `setGroupingComparatorClass` on a Hadoop job, 
+    # The equivalent of calling `setGroupingComparatorClass` on a Hadoop job,
     # but instead of a Java class you pass a Ruby class and Rubydoop will wrap
     # it in a way that works with Hadoop.
     #
@@ -277,7 +277,7 @@ module Rubydoop
 
     # Sets a custom sort comparator.
     #
-    # The equivalent of calling `setSortComparatorClass` on a Hadoop job, 
+    # The equivalent of calling `setSortComparatorClass` on a Hadoop job,
     # but instead of a Java class you pass a Ruby class and Rubydoop will wrap
     # it in a way that works with Hadoop.
     #
@@ -343,7 +343,7 @@ module Rubydoop
     # @!method output_key(cls)
     #
     # Sets the reducer's output key type.
-    # 
+    #
     # @see http://hadoop.apache.org/docs/r1.0.3/api/org/apache/hadoop/mapreduce/Job.html#setOutputKeyClass(java.lang.Class) Hadoop's Job#setOutputKeyClass
     #
     # @param [Class] cls The reducer's output key type
