@@ -32,6 +32,7 @@ module Rubydoop
     JobRunner.run(args, &block)
   end
 
+  # @ see {Rubydoop.run}
   def self.configure(&block)
     run(&block)
   end

@@ -3,8 +3,8 @@
 require 'hadoop'
 require 'rubydoop.jar'
 
-# See {Rubydoop.configure} for the job configuration DSL documentation, 
-# {Package} for the packaging documentation, or the {file:README.md README} 
+# See {Rubydoop.run} for the job configuration DSL documentation,
+# {Package} for the packaging documentation, or the {file:README.md README}
 # for a getting started guide.
 module Rubydoop
   include_package 'rubydoop'
