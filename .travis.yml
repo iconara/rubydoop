@@ -5,4 +5,6 @@ env:
   - HADOOP_RELEASE=hadoop-1.0.3/hadoop-1.0.3-bin
   - HADOOP_RELEASE=hadoop-1.2.1/hadoop-1.2.1-bin
   - HADOOP_RELEASE=hadoop-2.2.0/hadoop-2.2.0
+  - HADOOP_RELEASE=hadoop-2.4.0/hadoop-2.4.0
+  - HADOOP_RELEASE=hadoop-2.6.0/hadoop-2.6.0
 script: bundle exec rake setup spec
