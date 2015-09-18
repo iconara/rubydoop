@@ -1,10 +1,23 @@
 language: ruby
 rvm:
-  - jruby-19mode
+  - jruby
+jdk:
+  - openjdk7
 env:
   - HADOOP_RELEASE=hadoop-1.0.3/hadoop-1.0.3-bin
   - HADOOP_RELEASE=hadoop-1.2.1/hadoop-1.2.1-bin
   - HADOOP_RELEASE=hadoop-2.2.0/hadoop-2.2.0
   - HADOOP_RELEASE=hadoop-2.4.0/hadoop-2.4.0
   - HADOOP_RELEASE=hadoop-2.6.0/hadoop-2.6.0
+matrix:
+  include:
+    - rvm: jruby
+      jdk: oraclejdk8
+      env: HADOOP_RELEASE=hadoop-2.4.0/hadoop-2.4.0
+    - rvm: jruby-head
+      jdk: oraclejdk8
+      env: HADOOP_RELEASE=hadoop-2.4.0/hadoop-2.4.0
+  allow_failures:
+    - rvm: jruby-head
+  fast_finish: true
 script: bundle exec rake setup spec
