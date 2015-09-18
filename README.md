@@ -1,16 +1,27 @@
 # ♪ Rubydoop ♫
 
+[![Build Status](https://travis-ci.org/iconara/rubydoop.png?branch=master)](https://travis-ci.org/iconara/rubydoop)
+
+_If you're reading this on GitHub, please note that this is the readme for the development version and that some features described here might not yet have been released. You can find the readme for a specific version either through [rubydoc.info](http://rubydoc.info/find/gems?q=rubydoop) or via the release tags ([here is an example](https://github.com/iconara/rubydoop/tree/v1.2.0))._
+
 Rubydoop makes it possible to write Hadoop jobs in Ruby without using the streaming APIs. It configures the Hadoop runtime to run your Ruby code in an embedded JRuby runtime, and it provides a configuration DSL that's way nicer to use than Hadoop's `ToolRunner`.
 
 > _Looking for Rubydoop, Brenden Grace's "Simple Ruby Sugar for Hadoop Streaming"? It can still be found at https://github.com/bcg/rubydoop and if you install v0.0.5 from Rubygems, you'll get that gem._
 
 Rubydoop assumes you have some basic experience of Hadoop. The goal of Rubydoop isn't to do someting new on top of Hadoop, it's a way to use Hadoop from JRuby. Feel free to write something awesome that makes Hadoop easier to use on top of it if you like.
 
-Rubydoop is not complete. The configuration DSL only provides the bare basics, but it should make it much easier to set up a Hadoop job compared to a vanilla Java Hadoop project.
+Rubydoop is not complete. The configuration DSL only provides the bare basics, but it should make it much easier to set up a Hadoop job compared to a vanilla Java Hadoop project. If you're looking for something where you don't have to handle the Hadoop APIs and not care about how data is encoded in writables, check out [Humboldt](https://github.com/burtcorp/humboldt), which builds on Rubydoop.
 
 ## Installation
 
-    $ gem install rubydoop
+Rubydoop uses Bundler to determine how to package your jobs and dependencies into a JAR. The JAR will also contain a complete JRuby runtime, which requires the `jruby-jars` gem. Add this to your `Gemfile`:
+
+```ruby
+gem 'rubydoop'
+gem 'jruby-jars', "= #{JRUBY_VERSION}"
+```
+
+You also need either Hadoop installed locally or access to a Hadoop cluster to run your jobs.
 
 ## Example
 
@@ -74,12 +85,15 @@ end
 
 ### The job config
 
-Ok, so let's wire this together. To do that we need to tell Rubydoop about our job. If you saved the mapper and reducer implementation in a file called `word_count.rb` open another file and call it `word_count_job.rb`. In the new file add the following Rubydoop job config:
+Ok, so let's wire this together. To do that we need to tell Rubydoop about our job. If you saved the mapper and reducer implementation in a file called `lib/word_count.rb` open another file and call it `bin/word-count`. In the new file add the following Rubydoop job config:
 
 ```ruby
+$LOAD_PATH << File.expand_path('../../lib', __FILE__)
+
+require 'rubydoop'
 require 'word_count'
 
-Rubydoop.configure do |input_path, output_path|
+Rubydoop.run do |input_path, output_path|
   job 'word_count' do
     input input_path
     output output_path
@@ -93,18 +107,23 @@ Rubydoop.configure do |input_path, output_path|
 end
 ```
 
-That was a lot in one go. The first thing that happens is that we `require` the file containing the mapper and reducer implementations. That's really important, otherwise Rubydoop won't be able to find them later.
+That was a lot in one go. The first thing that happens is that we make sure that our `lib` directory is on the load path, then we `require` Rubydoop itself along with the file containing the mapper and reducer implementations.
 
-The next thing is a call to `Rubydoop.configure`. We didn't `require` Rubydoop, so where does this come from? You can `require` Rubydoop if you like, but it's not necessary, this file will be loaded by Rubydoop, so Rubydoop will by definition always be loaded already.
+Because of how Rubydoop packages your code to be run in Hadoop it's important that you _do not `require 'bundler'` or `require 'bundler/setup'`_ or anything that references Bundler. Bundler will not be available when your code runs.
 
-The configure block yields the command line arguments to the block. We'll get to command line arguments later, but there's nothing magic about `input_path` and `output_path`, Rubydoop just yields all the arguments given on the command line to the block (minus what Hadoop's tool runner extracts, and the Rubydoop config name -- but let's leave those details for later).
+The next thing is a call to `Rubydoop.run`. This method takes a block which will be used to define one or more jobs to run. Each job has input, output, a mapper and a reducer, and often some more configuration to control other aspects of how Hadoop should run it.
 
-Now finally to the job configuration. You can specify more than one and they will be run in sequence, but word count is simple enough to only need one. The things you can specify using the `job` DSL are the things you would configure in your `main` method (or `run` when using Hadoop's `ToolRunner`).
+You can include code before `Rubydoop.run`, but you should be aware that it will run on both the master and worker nodes. You can't include code after `Rubydoop.run`, Rubydoop will call `exit` when all jobs have run.
+
+The arguments to the block are the command line arguments given when telling Hadoop to run our jobs – we'll get to these arguments later, but at this point you should know that there's nothing magic about `input_path` and `output_path`, Rubydoop just yields all the arguments given on the command line to the block so it's up to you how to interpret them.
+
+Now finally to the job configuration. You can specify as many jobs as you want, but word count is simple enough to only need one. The things you can specify using the `job` DSL are the things you would configure in your `main` method (or `run` when using Hadoop's `ToolRunner`):
 
 * The `input` and `output` are aliases for `TextInputFormat.setInputPaths` (the argument should be a comma-separated list of paths) and `TextOutputFormat.setOutputPath` (or if you want to use another input/output format just pass `:format => XyzFormat` as an option to `input` or `output`).
 * The `mapper` and `reducer` are self-explanatory, and there's also a `combiner` to set the combiner, just like in Hadoop.
 * The `output_key` and `output_value` tells Hadoop what output to expect from the mapper and reducer. This needs to be set correctly otherwise Hadoop will complain. If the mapper's output doesn't match the reducer's you can specify the mapper's separately with `map_output_key` and `map_output_value`.
 * You can also use `set 'property.name', 'value'` to set properties, or `raw { |job| ... }` to access the raw `Job` instance.
+* You can control the partitioning and sorting with `partitioner`, `group_comparator` and `sort_comparator`.
 
 #### Job dependencies and parallel jobs
 
@@ -113,34 +132,34 @@ By default all jobs are run sequentially. This makes it easy to define pipelines
 For applications with many jobs you might want to run some of them in parallel, and some in sequence. For this you can group your jobs together with `parallel` and `sequential`, like this (the contents of the `job` blocks are left out to make it easier to follow the example):
 
 ```ruby
-Rubydoop.configure do |…|
+Rubydoop.run do |…|
   job 'first' do
-    …
+    # …
   end
 
   parallel do
     job 'second' do
-      …
+      # …
     end
 
     sequential do
       job 'third' do
-        …
+        # …
       end
 
       job 'fourth' do
-        …
+        # …
       end
     end
   end
 
   job 'fifth' do
-    …
+    # …
   end
 end
 ```
 
-Because the `configure` block acts as an implicit `sequential`, with this config the job `first` will run, then `second` will run in parallel with `third` and `fourth`. `fourth` will wait for `third` to complete before it starts. Finally `fifth` will run when `third` and `fifth` have completed.
+Because the `run` block acts as an implicit `sequential`, with this config the job `first` will run, then `second` will run in parallel with `third` and `fourth`. `fourth` will wait for `third` to complete before it starts. Finally `fifth` will run when `third` and `fifth` have completed.
 
 You can nest `sequential` and `parallel` to any depth, which should make it possible to describe any directed acyclic graph of jobs.
 
@@ -158,19 +177,21 @@ task :package do
 end
 ```
 
-Unless you hate using defaults that's all you need to do (most of the defaults can be changed, so don't worry). When you run `rake package` it will create a JAR file in a directory called `build`. The JAR will be named after the directory that the Rakefile is in (it assumes this is your project directory), and it will include the full JRuby runtime (this will be downloaded and cached the first time you run the task), all code in the `lib` directory and all dependencies in the default (top-level) group of your `Gemfile`. It will not include Bundler, so don't do `require 'bundler/setup'` or similar in your code. All gems will be on the load path, so `require`'s will work as expected.
+Unless you hate using defaults that's all you need to do (most of the defaults can be changed, so don't worry). When you run `rake package` it will create a JAR file in a directory called `build`. The JAR will be named after the directory that the Rakefile is in (it assumes this is your project directory).
+
+The packaging is done with [Puck](https://github.com/iconara/puck), which creates JAR files that are standalone JRuby applications that include a full JRuby runtime, all gems and the application code. Rubydoop applications aren't completely standalone and can't be run with `java -jar …` as they require Hadoop, but they contain everything needed to run them with `hadoop jar …` – Hadoop won't even know that it's running Ruby code.
+
+As mentioned above, it's important that your code does not reference Bundler at runtime (for example with `require 'bundler/setup'`), because Bundler is not included in the JAR file.
 
 ### Running it, finally
 
 Now when we have a JAR we can run it with Hadoop. Assuming you have Hadoop set up already you only need to submit the job using the `hadoop` command, like this:
 
-    $ hadoop jar build/word_count.jar word_count_job path/to/input path/to/output
+    $ hadoop jar build/word_count.jar word-count -config hadoop-config.xml path/to/input path/to/output
 
-The only surprise there is the `word_count_job` argument. That's the name of the file with the `Rudoop.configure` block. We could have given `word_count_job.rb` too, but Rubydoop will do a `require` for this file (the packaging will make sure it's on the load path), so dropping the `.rb` works. Think of this argument as the equivalent of the main-class argument you have to give Hadoop if your JAR's manifest doesn't specify it. If that last sentence doesn't make sense, just ignore it, the important thing is that you need to tell Rubydoop which job configuration you want to run. Why couldn't this be set when you packaged the JAR? Doing it this way makes it possible to pack multiple configurations into the same JAR. In the future there might be a way to choose, just like you can with a normal Hadoop job: either you specifiy the main-class when you create the JAR, or you have to pass it on the command line.
+The only surprise there is the `word-count` argument. That's the name of the file with the `Rudoop.run` block. Think of this argument as the equivalent of the main-class argument you have to give Hadoop if your JAR's manifest doesn't specify it. If that last sentence doesn't make sense, just ignore it, the important thing is that you need to tell Rubydoop which job configuration you want to run. Why couldn't this be set when you packaged the JAR? Doing it this way makes it possible to pack multiple configurations into the same JAR. In the future there might be a way to choose, just like you can with a normal Hadoop job: either you specifiy the main-class when you create the JAR, or you have to pass it on the command line.
 
-You can pass any other `ToolRunner` arguments like `-config` if you want, but the rest of the command line arguments will end up as arguments to the `Rubydoop.configure` block, as mentioned before.
-
-This JAR is completely self-contained. It even contains a complete JRuby runtime (that's why it's so big!), and you can send it off to your Hadoop cluster, or to Amazon's Elastic MapReduce, just like any other Hadoop job written in Java.
+You can pass any other `ToolRunner` arguments like `-config` if you want (as long as you pass them after the job file name, e.g. `word-count`), but the rest of the command line arguments will end up as arguments to the `Rubydoop.run` block, as mentioned before.
 
 ## Running the tests and building from source
 
@@ -178,9 +199,11 @@ Rubydoop requires Hadoop, RVM, and Bundler to be installed to compile from sourc
 
 Run the tests like this:
 
-    $ bundle install
-    $ rake setup
-    $ rake spec
+```ruby
+$ bundle install
+$ rake setup
+$ rake spec
+```
 
 The two first commands are one-time setup steps. The third will build the Java extensions before running the tests, but if you want to just build run `rake build`.
 

@@ -6,7 +6,7 @@
     <value>file:///</value>
   </property>
   <property>
-    <name>mapred.job.tracker</name>
+    <name>mapreduce.jobtracker.address</name>
     <value>local</value>
   </property>
 </configuration>
