@@ -155,5 +155,12 @@ describe 'Packaging and running a project' do
         expect(uniques['e']).to eq 128
       end
     end
+
+    context 'the lazy output job' do
+      it 'produces no output files' do
+        expect(File.exist?('data/output/lazy_output/_SUCCESS')).to be_truthy
+        expect(Dir['data/output/lazy_output/part-r-*']).to be_empty
+      end
+    end
   end
 end

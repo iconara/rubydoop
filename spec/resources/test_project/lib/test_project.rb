@@ -6,6 +6,7 @@ require 'openssl' # this just asserts that jruby-openssl was packaged correctly
 
 require 'word_count'
 require 'uniques'
+require 'lazy_output'
 
 
 Rubydoop.configure do |input_path, output_path|
@@ -45,6 +46,17 @@ Rubydoop.configure do |input_path, output_path|
 
     output_key Hadoop::Io::Text
     output_value Hadoop::Io::Text
+  end
+
+  job 'lazy_output' do
+    input input_path
+    output "#{output_path}/lazy_output", lazy: true
+
+    mapper WordCount::Mapper
+    reducer LazyOutput::Reducer
+
+    output_key Hadoop::Io::Text
+    output_value Hadoop::Io::IntWritable
   end
 end
 
