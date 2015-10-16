@@ -133,6 +133,9 @@ module Rubydoop
         end
         format.set_output_path(@job, Hadoop::Fs::Path.new(@output_dir))
         @job.set_output_format_class(format)
+        if options[:lazy]
+          Hadoop::Mapreduce::Lib::Output::LazyOutputFormat.set_output_format_class(@job, format)
+        end
       end
       @output_dir
     end
