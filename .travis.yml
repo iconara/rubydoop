@@ -2,7 +2,7 @@ language: ruby
 rvm:
   - jruby
 jdk:
-  - openjdk7
+  - oraclejdk7
 env:
   - HADOOP_RELEASE=hadoop-1.0.3/hadoop-1.0.3-bin
   - HADOOP_RELEASE=hadoop-1.2.1/hadoop-1.2.1-bin
