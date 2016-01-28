@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     rubydoop (2.0.0.pre0-java)
-      puck (~> 1.1)
+      puck (~> 1.2)
 
 GEM
   remote: https://rubygems.org/
@@ -43,7 +43,7 @@ GEM
       method_source (~> 0.8)
       slop (~> 3.3.1)
       spoon (~> 0.0)
-    puck (1.1.0-java)
+    puck (1.2.3-java)
     pusher-client (0.3.1)
       ruby-hmac (~> 0.4.0)
       websocket (~> 1.0.0)

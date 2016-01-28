@@ -33,8 +33,9 @@ module Rubydoop
 
     def containing_jar
       @containing_jar ||= begin
+        relative_setup_script = @setup_script[/(?<=#{PUCK_ROOT}).+\Z/]
         class_loader = JRuby.runtime.jruby_class_loader
-        if (url = class_loader.get_resources(@setup_script).find { |url| url.protocol == 'jar' })
+        if (url = class_loader.get_resources(relative_setup_script).find { |url| url.protocol == 'jar' })
           path = url.path
           path.slice!(/\Afile:/)
           path = Java::JavaNet::URLDecoder.decode(path, 'UTF-8')
