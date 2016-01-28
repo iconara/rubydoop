@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rubydoop (2.0.0.pre0)
+    rubydoop (2.0.0.pre0-java)
       puck (~> 1.1)
 
 GEM
@@ -95,3 +95,6 @@ DEPENDENCIES
   rvm
   travis
   yard
+
+BUNDLED WITH
+   1.11.2
