@@ -29,7 +29,7 @@ public class InstanceContainer {
             isLoadPathSetup = Ruby.isGlobalRuntimeReady();
             globalRuntime = new ScriptingContainer(LocalVariableBehavior.PERSISTENT);
             globalRuntime.setCompatVersion(CompatVersion.RUBY1_9);
-            globalRuntime.put("$rubydoop_embedded", true);
+            globalRuntime.runScriptlet("$rubydoop_embedded = true");
         }
         return globalRuntime;
     }
@@ -67,7 +67,7 @@ public class InstanceContainer {
     private static synchronized void setupLoadPath(ScriptingContainer runtime, Configuration conf) {
         if (!isLoadPathSetup) {
             String jobConfigScript = getRequired(conf, JOB_SETUP_SCRIPT_KEY);
-            Object argv = runtime.get("ARGV");
+            Object argv = runtime.runScriptlet("ARGV");
             runtime.callMethod(argv, "unshift", jobConfigScript);
             runtime.callMethod(null, "require", "jar-bootstrap.rb");
             isLoadPathSetup = true;
