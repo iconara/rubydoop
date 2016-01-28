@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rubydoop (2.0.0.pre0-java)
+    rubydoop (2.0.0.pre1-java)
       puck (~> 1.2)
 
 GEM
